@@ -5,9 +5,11 @@ output: html_document
 
 The data for these plots come from the U.S. [CDC](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm).
 
+### Excess deaths 2020 persons <25 U.S.
+
 This first code chunk is designed to analyze & plot a file with data for provisional death counts from 2015-2020 in only persons aged <25.
 
-```{r fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 1**: Provisional death counts for 2020 compared to 2015-2019 for persons aged <25. Negative excess deaths indicate fewer deaths in 2020 compared to 2015-2019."}
+```{r Excess-deaths-u25, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 1**: Provisional death counts for 2020 compared to 2015-2019 for persons aged <25. Negative excess deaths indicate fewer deaths in 2020 compared to 2015-2019."}
 Data<-read.csv("Weekly_counts_of_death_by_age_Full_Data_data_under25.csv")
 Weekly<-matrix(NA,52,6,
 	dimnames=list(1:52,2015:2020))
@@ -46,9 +48,11 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
-This second code chunk is more general. Here, I used it to analyze death counts for persons >65; however, it could be adapted easily to analyze any set of CDC age groups.
+### Excess deaths 2020 persons >65 U.S.
 
-```{r fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 2**: Provisional death counts for 2020 compared to 2015-2019 for persons aged >65."}
+This second code chunk is more general. Here, I used it to analyze death counts for persons >65; however, it could be adapted easily to analyze any set of CDC age groups - in which the input file has been filtered to include only deaths in that age group.
+
+```{r Excess-deaths-o65, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 2**: Provisional death counts for 2020 compared to 2015-2019 for persons aged >65."}
 Data<-read.csv("Weekly_counts_of_death_by_age_Full_Data_data_over65.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))

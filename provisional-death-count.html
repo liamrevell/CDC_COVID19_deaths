@@ -380,6 +380,8 @@ summary {
 
 
 <p>The data for these plots come from the U.S. <a href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm">CDC</a>.</p>
+<div id="excess-deaths-2020-persons-25-u.s." class="section level3">
+<h3>Excess deaths 2020 persons &lt;25 U.S.</h3>
 <p>This first code chunk is designed to analyze &amp; plot a file with data for provisional death counts from 2015-2020 in only persons aged &lt;25.</p>
 <pre class="r"><code>Data&lt;-read.csv(&quot;Weekly_counts_of_death_by_age_Full_Data_data_under25.csv&quot;)
 Weekly&lt;-matrix(NA,52,6,
@@ -423,7 +425,10 @@ legend(&quot;topright&quot;,&quot;Data in recent weeks\nare incomplete.&quot;,lt
 <strong>Fig. 1</strong>: Provisional death counts for 2020 compared to 2015-2019 for persons aged &lt;25. Negative excess deaths indicate fewer deaths in 2020 compared to 2015-2019.
 </p>
 </div>
-<p>This second code chunk is more general. Here, I used it to analyze death counts for persons &gt;65; however, it could be adapted easily to analyze any set of CDC age groups.</p>
+</div>
+<div id="excess-deaths-2020-persons-65-u.s." class="section level3">
+<h3>Excess deaths 2020 persons &gt;65 U.S.</h3>
+<p>This second code chunk is more general. Here, I used it to analyze death counts for persons &gt;65; however, it could be adapted easily to analyze any set of CDC age groups - in which the input file has been filtered to include only deaths in that age group.</p>
 <pre class="r"><code>Data&lt;-read.csv(&quot;Weekly_counts_of_death_by_age_Full_Data_data_over65.csv&quot;)
 jj&lt;-grep(&quot;Age.Group&quot;,colnames(Data))
 ages&lt;-levels(as.factor(Data[,jj]))
@@ -470,6 +475,7 @@ legend(&quot;topright&quot;,&quot;Data in recent weeks\nare incomplete.&quot;,lt
 <p class="caption">
 <strong>Fig. 2</strong>: Provisional death counts for 2020 compared to 2015-2019 for persons aged &gt;65.
 </p>
+</div>
 </div>
 
 
