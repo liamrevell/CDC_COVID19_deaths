@@ -1,0 +1,1 @@
+Simple analysis of excess death counts for COVID-19 pandemic in the U.S. compared to CDC death counts from 2015-2019. Data is from https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm. 
