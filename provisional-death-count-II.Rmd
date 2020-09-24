@@ -7,30 +7,56 @@ The data for these plots come from the U.S. [CDC provisional death counts](https
 through September, 2020.
 
 Data for recent weeks are incomplete. I nonetheless report all the data here - but this is why we tend to see a *drop* in excess
-deaths towards the far right of each plot.
+deaths towards the far right of each plot. 
 
-Since the population of the U.S. has been *growing* through time, I used the following U.S. population size estimates (from 
-[worldometers.info](https://www.worldometers.info/world-population/us-population/)) to *correct* expected death counts from 2015-2019 to 
-2020 population size.
+To correct for data incompleteness, the CDC uses a weighting algorithm based on reporting patterns in previous years to correct
+estimated weekly totals. From the CDC: *Provisional death counts are weighted to account for incomplete data. However, 
+data for the most recent week(s) are still likely to be incomplete. Weights are based on completeness of provisional data in prior years, 
+but the timeliness of data may have changed in 2020 relative to prior years, so the resulting weighted estimates may be too high in some 
+jurisdictions and too low in others.* 
+
+(I used the *weighted* provisional counts, which are always higher than the *unweighted* raw counts.)
+
+Since the population of the U.S. has been *growing* through time, I also used the following U.S. population size estimates (from 
+[worldometers.info](https://www.worldometers.info/world-population/us-population/)) to *correct* expected death counts from 2016-2019 to 
+2020 population size. This correction has only a very small effect on the overall estimate of excess death.
 
 ```{r, echo=FALSE}
-US.popn<-c(320878310,323015995,325084756,327096265,
+US.popn<-c(323015995,325084756,327096265,
 	329064917,331002651)
-knitr::kable(data.frame(year=as.character(2015:2020),
+knitr::kable(data.frame(year=as.character(2016:2020),
 	population=US.popn),
 	caption="**Table 1**: Estimated U.S. population by year",
 	align="l",format = "html", table.attr = "style='width:40%;'",
 	format.args=list(big.mark=","))
-names(US.popn)<-2015:2020
+names(US.popn)<-2016:2020
 ```
 
 <br>
 
-(This is a very rough approximation, since it doesn't account for shifting demographics through time.)
+I would characterize corrected for overall population size *alone* as a very crude approximation, as it does not account for shifting 
+demographics through time. In general, the U.S. population getting *older* through time. As such not taking into account shifting 
+demographics should tend to *overestimate* the excess mortality of older individuals and *underestimate* the excess mortality of the
+very young.
+
+The [dataset](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm) that I used for this analysis also included data for 2015.
+Including these did not make a large difference, *except* for the analysis of excess deaths in persons aged 25-44 - in which this one 
+additional year resulted in a 4% (that is, about a 20% change) in the percent excess death. This is hard to explain, so I decided to 
+exclude 2015.
 
 ### Excess deaths 2020 persons <25
 
-```{r Excess-deaths-u25, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 1**: Provisional death counts for 2020 compared to 2015-2019 for persons aged <25. Negative excess deaths indicate fewer deaths in 2020 compared to 2015-2019."}
+This is a graphical analysis of excess mortality in 2020 among U.S. persons aged under 25 years.
+
+The first plot of shows observed weekly deaths in 2020 (grey bars), (corrected) observed weekly deaths from 2016-2019 (black lines), 
+and expected weekly deaths (blue line), computed by averaging corrected weekly deaths from 2016-2019.
+
+Data for 2020 are incomplete, and as such have been corrected to account for this incompleteness based on a model of past year reporting
+patterns.
+
+The second plot shows excess deaths. This is the *difference* between the observed deaths in 2020 and expected deaths, computed as the mean from 2016-2019.
+
+```{r Excess-deaths-u25, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 1**: Provisional death counts for 2020 compared to 2016-2019 for persons aged <25. Negative excess deaths indicate fewer deaths in 2020 compared to 2016-2019."}
 Data<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))
@@ -39,48 +65,48 @@ jj<-grep("Jurisdiction",colnames(Data))
 jurisdictions<-levels(as.factor(Data[,jj]))
 ii<-which(Data[,jj]=="United States")
 Data<-Data[ii,]
-Weekly<-matrix(NA,52,6,
-	dimnames=list(1:52,2015:2020))
+Weekly<-matrix(NA,52,5,
+	dimnames=list(1:52,2016:2020))
 for(i in 1:length(ages)){
 	ii<-which(Data[,grep("Age.Group",colnames(Data))]==ages[i])
 	ii<-ii[1:(length(ii)/2)]
 	Tmp<-Data[ii,]
-	for(j in 1:6){
-		ii<-which(Tmp$Year==(2014+j))
-		if(i==1) Weekly[ii-52*(j-1),as.character(2014+j)]<-0
-		Weekly[ii-52*(j-1),as.character(2014+j)]<-
-			Weekly[ii-52*(j-1),as.character(2014+j)]+
+	for(j in 1:5){
+		ii<-which(Tmp$Year==(2015+j))
+		if(i==1) Weekly[ii-52*j,as.character(2015+j)]<-0
+		Weekly[ii-52*j,as.character(2015+j)]<-
+			Weekly[ii-52*j,as.character(2015+j)]+
 			Tmp[ii,"Number.of.Deaths"]
 	}
 }
 corrected<-Weekly
-corrected[,1:5]<-Weekly[,1:5]*matrix(US.popn[6]/US.popn[1:5],52,5,
+corrected[,1:4]<-Weekly[,1:4]*matrix(US.popn[5]/US.popn[1:4],52,4,
 	byrow=TRUE)
 par(mfrow=c(2,1),mar=c(5.1,5.1,2.1,2.1))
 plot(NA,xlim=c(1,52),ylim=c(0,max(corrected,na.rm=TRUE)),bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="CDC provisional death count (<25)",line=3.5,cex.lab=0.9)
 barplot(corrected[,"2020"],width=0.8,space=0.25,add=TRUE,axes=FALSE,names.arg="")
-for(i in 1:5){
+for(i in 1:4){
 	lines(1:52,corrected[,i])
 }
-lines(1:52,rowMeans(corrected[,1:5]),lwd=4,col=palette()[4])
-legend("bottomright",c("average weekly deaths\n2015-2019",
-	"weekly deaths 2015-2019",
+lines(1:52,rowMeans(corrected[,1:4]),lwd=4,col=palette()[4])
+legend("bottomright",c("average weekly deaths\n2016-2019",
+	"weekly deaths 2016-2019",
 	"weekly deaths 2020"),bty="n",pch=c(NA,NA,22),pt.bg=c(NA,NA,"grey"),
 	cex=0.7,pt.cex=c(NA,NA,1.2),lwd=c(2,1,NA),col=c(palette()[4],"black",
 	"black"))
-Expected<-rowMeans(corrected[,1:5])
-deaths.2020<-corrected[,"2020"]
-deaths.2020<-deaths.2020[!is.na(deaths.2020)]
-excess.2020<-deaths.2020-Expected[1:length(deaths.2020)]
-cs<-cumsum(excess.2020)
-plot(NA,xlim=c(1,52),ylim=c(-1400,200),
+Expected<-rowMeans(corrected[,1:4])
+deaths.2020.u25<-corrected[,"2020"]
+deaths.2020.u25<-deaths.2020.u25[!is.na(deaths.2020.u25)]
+excess.2020.u25<-deaths.2020.u25-Expected[1:length(deaths.2020.u25)]
+cs<-cumsum(excess.2020.u25)
+plot(NA,xlim=c(1,52),ylim=range(c(0,cs)),
 	bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="Cumulative CDC excess deaths (<25)",line=3.5,cex.lab=0.9)
-lines(1:(length(deaths.2020)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
-lines(1:7+(length(deaths.2020)-7),cs[1:7+(length(deaths.2020)-7)],lwd=4,
+lines(1:(length(deaths.2020.u25)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
+lines(1:7+(length(deaths.2020.u25)-7),cs[1:7+(length(deaths.2020.u25)-7)],lwd=4,
 	lty="dotted",,col=palette()[4])
 legend("bottomleft","source: https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm",
 	cex=0.7,bty="n")
@@ -88,9 +114,15 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
+<br>
+
 ### Excess deaths 2020 persons 25-44
 
-```{r Excess-deaths-25-44, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 2**: Provisional death counts for 2020 compared to 2015-2019 for persons aged 25-44."}
+This is a graphical analysis of excess mortality in 2020 among U.S. persons aged under 25-44 years of age.
+
+Plots are as for persons aged under 25 years.
+
+```{r Excess-deaths-25-44, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 2**: Provisional death counts for 2020 compared to 2016-2019 for persons aged 25-44."}
 Data<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))
@@ -99,48 +131,48 @@ jj<-grep("Jurisdiction",colnames(Data))
 jurisdictions<-levels(as.factor(Data[,jj]))
 ii<-which(Data[,jj]=="United States")
 Data<-Data[ii,]
-Weekly<-matrix(NA,52,6,
-	dimnames=list(1:52,2015:2020))
+Weekly<-matrix(NA,52,5,
+	dimnames=list(1:52,2016:2020))
 for(i in 1:length(ages)){
 	ii<-which(Data[,grep("Age.Group",colnames(Data))]==ages[i])
 	ii<-ii[1:(length(ii)/2)]
 	Tmp<-Data[ii,]
-	for(j in 1:6){
-		ii<-which(Tmp$Year==(2014+j))
-		if(i==1) Weekly[ii-52*(j-1),as.character(2014+j)]<-0
-		Weekly[ii-52*(j-1),as.character(2014+j)]<-
-			Weekly[ii-52*(j-1),as.character(2014+j)]+
+	for(j in 1:5){
+		ii<-which(Tmp$Year==(2015+j))
+		if(i==1) Weekly[ii-52*j,as.character(2015+j)]<-0
+		Weekly[ii-52*j,as.character(2015+j)]<-
+			Weekly[ii-52*j,as.character(2015+j)]+
 			Tmp[ii,"Number.of.Deaths"]
 	}
 }
 corrected<-Weekly
-corrected[,1:5]<-Weekly[,1:5]*matrix(US.popn[6]/US.popn[1:5],52,5,
+corrected[,1:4]<-Weekly[,1:4]*matrix(US.popn[5]/US.popn[1:4],52,4,
 	byrow=TRUE)
 par(mfrow=c(2,1),mar=c(5.1,5.1,2.1,2.1))
 plot(NA,xlim=c(1,52),ylim=c(0,max(corrected,na.rm=TRUE)),bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="CDC provisional death count (25-44)",line=3.5,cex.lab=0.9)
 barplot(corrected[,"2020"],width=0.8,space=0.25,add=TRUE,axes=FALSE,names.arg="")
-for(i in 1:5){
+for(i in 1:4){
 	lines(1:52,corrected[,i])
 }
-lines(1:52,rowMeans(corrected[,1:5]),lwd=4,col=palette()[4])
-legend("bottomright",c("average weekly deaths\n2015-2019",
-	"weekly deaths 2015-2019",
+lines(1:52,rowMeans(corrected[,1:4]),lwd=4,col=palette()[4])
+legend("bottomright",c("average weekly deaths\n2016-2019",
+	"weekly deaths 2016-2019",
 	"weekly deaths 2020"),bty="n",pch=c(NA,NA,22),pt.bg=c(NA,NA,"grey"),
 	cex=0.7,pt.cex=c(NA,NA,1.2),lwd=c(2,1,NA),col=c(palette()[4],"black",
 	"black"))
-Expected<-rowMeans(corrected[,1:5])
-deaths.2020<-corrected[,"2020"]
-deaths.2020<-deaths.2020[!is.na(deaths.2020)]
-excess.2020<-deaths.2020-Expected[1:length(deaths.2020)]
-cs<-cumsum(excess.2020)
-plot(NA,xlim=c(1,52),ylim=c(-200,30000),
+Expected<-rowMeans(corrected[,1:4])
+deaths.2020.25.44<-corrected[,"2020"]
+deaths.2020.25.44<-deaths.2020.25.44[!is.na(deaths.2020.25.44)]
+excess.2020.25.44<-deaths.2020.25.44-Expected[1:length(deaths.2020.25.44)]
+cs<-cumsum(excess.2020.25.44)
+plot(NA,xlim=c(1,52),ylim=range(c(0,cs)),
 	bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="Cumulative CDC excess deaths (25-44)",line=3.5,cex.lab=0.9)
-lines(1:(length(deaths.2020)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
-lines(1:7+(length(deaths.2020)-7),cs[1:7+(length(deaths.2020)-7)],lwd=4,
+lines(1:(length(deaths.2020.25.44)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
+lines(1:7+(length(deaths.2020.25.44)-7),cs[1:7+(length(deaths.2020.25.44)-7)],lwd=4,
 	lty="dotted",,col=palette()[4])
 legend("bottomright","source: https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm",
 	cex=0.7,bty="n")
@@ -148,9 +180,15 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
+<br>
+
 ### Excess deaths 2020 persons 45-64
 
-```{r Excess-deaths-45-64, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 3**: Provisional death counts for 2020 compared to 2015-2019 for persons aged 45-64."}
+This is a graphical analysis of excess mortality in 2020 among U.S. persons aged under 45-64 years of age.
+
+Plots are as for persons aged under 25 years.
+
+```{r Excess-deaths-45-64, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 3**: Provisional death counts for 2020 compared to 2016-2019 for persons aged 45-64."}
 Data<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))
@@ -159,48 +197,48 @@ jj<-grep("Jurisdiction",colnames(Data))
 jurisdictions<-levels(as.factor(Data[,jj]))
 ii<-which(Data[,jj]=="United States")
 Data<-Data[ii,]
-Weekly<-matrix(NA,52,6,
-	dimnames=list(1:52,2015:2020))
+Weekly<-matrix(NA,52,5,
+	dimnames=list(1:52,2016:2020))
 for(i in 1:length(ages)){
 	ii<-which(Data[,grep("Age.Group",colnames(Data))]==ages[i])
 	ii<-ii[1:(length(ii)/2)]
 	Tmp<-Data[ii,]
-	for(j in 1:6){
-		ii<-which(Tmp$Year==(2014+j))
-		if(i==1) Weekly[ii-52*(j-1),as.character(2014+j)]<-0
-		Weekly[ii-52*(j-1),as.character(2014+j)]<-
-			Weekly[ii-52*(j-1),as.character(2014+j)]+
+	for(j in 1:5){
+		ii<-which(Tmp$Year==(2015+j))
+		if(i==1) Weekly[ii-52*j,as.character(2015+j)]<-0
+		Weekly[ii-52*j,as.character(2015+j)]<-
+			Weekly[ii-52*j,as.character(2015+j)]+
 			Tmp[ii,"Number.of.Deaths"]
 	}
 }
 corrected<-Weekly
-corrected[,1:5]<-Weekly[,1:5]*matrix(US.popn[6]/US.popn[1:5],52,5,
+corrected[,1:4]<-Weekly[,1:4]*matrix(US.popn[5]/US.popn[1:4],52,4,
 	byrow=TRUE)
 par(mfrow=c(2,1),mar=c(5.1,5.1,2.1,2.1))
 plot(NA,xlim=c(1,52),ylim=c(0,max(corrected,na.rm=TRUE)),bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="CDC provisional death count (45-64)",line=3.5,cex.lab=0.9)
 barplot(corrected[,"2020"],width=0.8,space=0.25,add=TRUE,axes=FALSE,names.arg="")
-for(i in 1:5){
+for(i in 1:4){
 	lines(1:52,corrected[,i])
 }
-lines(1:52,rowMeans(corrected[,1:5]),lwd=4,col=palette()[4])
-legend("bottomright",c("average weekly deaths\n2015-2019",
-	"weekly deaths 2015-2019",
+lines(1:52,rowMeans(corrected[,1:4]),lwd=4,col=palette()[4])
+legend("bottomright",c("average weekly deaths\n2016-2019",
+	"weekly deaths 2016-2019",
 	"weekly deaths 2020"),bty="n",pch=c(NA,NA,22),pt.bg=c(NA,NA,"grey"),
 	cex=0.7,pt.cex=c(NA,NA,1.2),lwd=c(2,1,NA),col=c(palette()[4],"black",
 	"black"))
-Expected<-rowMeans(corrected[,1:5])
-deaths.2020<-corrected[,"2020"]
-deaths.2020<-deaths.2020[!is.na(deaths.2020)]
-excess.2020<-deaths.2020-Expected[1:length(deaths.2020)]
-cs<-cumsum(excess.2020)
-plot(NA,xlim=c(1,52),ylim=c(-2000,50000),
+Expected<-rowMeans(corrected[,1:4])
+deaths.2020.45.64<-corrected[,"2020"]
+deaths.2020.45.64<-deaths.2020.45.64[!is.na(deaths.2020.45.64)]
+excess.2020.45.64<-deaths.2020.45.64-Expected[1:length(deaths.2020.45.64)]
+cs<-cumsum(excess.2020.45.64)
+plot(NA,xlim=c(1,52),ylim=range(c(0,cs)),
 	bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="Cumulative CDC excess deaths (45-64)",line=3.5,cex.lab=0.9)
-lines(1:(length(deaths.2020)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
-lines(1:7+(length(deaths.2020)-7),cs[1:7+(length(deaths.2020)-7)],lwd=4,
+lines(1:(length(deaths.2020.45.64)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
+lines(1:7+(length(deaths.2020.45.64)-7),cs[1:7+(length(deaths.2020.45.64)-7)],lwd=4,
 	lty="dotted",,col=palette()[4])
 legend("bottomright","source: https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm",
 	cex=0.7,bty="n")
@@ -208,9 +246,15 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
+<br>
+
 ### Excess deaths 2020 persons >65
 
-```{r Excess-deaths-o65, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 4**: Provisional death counts for 2020 compared to 2015-2019 for persons aged >65."}
+This is a graphical analysis of excess mortality in 2020 among U.S. persons aged under 45-64 years of age.
+
+Plots are as for persons aged under 25 years.
+
+```{r Excess-deaths-o65, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 4**: Provisional death counts for 2020 compared to 2016-2019 for persons aged >65."}
 Data<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))
@@ -219,48 +263,48 @@ jj<-grep("Jurisdiction",colnames(Data))
 jurisdictions<-levels(as.factor(Data[,jj]))
 ii<-which(Data[,jj]=="United States")
 Data<-Data[ii,]
-Weekly<-matrix(NA,52,6,
-	dimnames=list(1:52,2015:2020))
+Weekly<-matrix(NA,52,5,
+	dimnames=list(1:52,2016:2020))
 for(i in 1:length(ages)){
 	ii<-which(Data[,grep("Age.Group",colnames(Data))]==ages[i])
 	ii<-ii[1:(length(ii)/2)]
 	Tmp<-Data[ii,]
-	for(j in 1:6){
-		ii<-which(Tmp$Year==(2014+j))
-		if(i==1) Weekly[ii-52*(j-1),as.character(2014+j)]<-0
-		Weekly[ii-52*(j-1),as.character(2014+j)]<-
-			Weekly[ii-52*(j-1),as.character(2014+j)]+
+	for(j in 1:5){
+		ii<-which(Tmp$Year==(2015+j))
+		if(i==1) Weekly[ii-52*j,as.character(2015+j)]<-0
+		Weekly[ii-52*j,as.character(2015+j)]<-
+			Weekly[ii-52*j,as.character(2015+j)]+
 			Tmp[ii,"Number.of.Deaths"]
 	}
 }
 corrected<-Weekly
-corrected[,1:5]<-Weekly[,1:5]*matrix(US.popn[6]/US.popn[1:5],52,5,
+corrected[,1:4]<-Weekly[,1:4]*matrix(US.popn[5]/US.popn[1:4],52,4,
 	byrow=TRUE)
 par(mfrow=c(2,1),mar=c(5.1,5.1,2.1,2.1))
 plot(NA,xlim=c(1,52),ylim=c(0,max(corrected,na.rm=TRUE)),bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="CDC provisional death count (>65)",line=3.5,cex.lab=0.9)
 barplot(corrected[,"2020"],width=0.8,space=0.25,add=TRUE,axes=FALSE,names.arg="")
-for(i in 1:5){
+for(i in 1:4){
 	lines(1:52,corrected[,i])
 }
-lines(1:52,rowMeans(corrected[,1:5]),lwd=4,col=palette()[4])
-legend("bottomright",c("average weekly deaths\n2015-2019",
-	"weekly deaths 2015-2019",
+lines(1:52,rowMeans(corrected[,1:4]),lwd=4,col=palette()[4])
+legend("bottomright",c("average weekly deaths\n2016-2019",
+	"weekly deaths 2016-2019",
 	"weekly deaths 2020"),bty="n",pch=c(NA,NA,22),pt.bg=c(NA,NA,"grey"),
 	cex=0.7,pt.cex=c(NA,NA,1.2),lwd=c(2,1,NA),col=c(palette()[4],"black",
 	"black"))
-Expected<-rowMeans(corrected[,1:5])
-deaths.2020<-corrected[,"2020"]
-deaths.2020<-deaths.2020[!is.na(deaths.2020)]
-excess.2020<-deaths.2020-Expected[1:length(deaths.2020)]
-cs<-cumsum(excess.2020)
-plot(NA,xlim=c(1,52),ylim=c(-5000,250000),
+Expected<-rowMeans(corrected[,1:4])
+deaths.2020.o65<-corrected[,"2020"]
+deaths.2020.o65<-deaths.2020.o65[!is.na(deaths.2020.o65)]
+excess.2020.o65<-deaths.2020.o65-Expected[1:length(deaths.2020.o65)]
+cs<-cumsum(excess.2020.o65)
+plot(NA,xlim=c(1,52),ylim=range(c(0,cs)),
 	bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="Cumulative CDC excess deaths (>65)",line=3.5,cex.lab=0.9)
-lines(1:(length(deaths.2020)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
-lines(1:7+(length(deaths.2020)-7),cs[1:7+(length(deaths.2020)-7)],lwd=4,
+lines(1:(length(deaths.2020.o65)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
+lines(1:7+(length(deaths.2020.o65)-7),cs[1:7+(length(deaths.2020.o65)-7)],lwd=4,
 	lty="dotted",,col=palette()[4])
 legend("bottomright","source: https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm",
 	cex=0.7,bty="n")
@@ -268,9 +312,15 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
+<br>
+
 ### All ages
 
-```{r Excess-deaths-all, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 5**: Provisional death counts for 2020 compared to 2015-2019 for all ages."}
+This is a graphical analysis of excess mortality in 2020 among U.S. persons of all ages.
+
+Plots are as for persons aged under 25 years.
+
+```{r Excess-deaths-all, echo=FALSE, fig.width=10.8, fig.height=9.5, dpi=300, fig.cap="**Fig. 5**: Provisional death counts for 2020 compared to 2016-2019 for all ages."}
 Data<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 jj<-grep("Age.Group",colnames(Data))
 ages<-levels(as.factor(Data[,jj]))
@@ -278,48 +328,48 @@ jj<-grep("Jurisdiction",colnames(Data))
 jurisdictions<-levels(as.factor(Data[,jj]))
 ii<-which(Data[,jj]=="United States")
 Data<-Data[ii,]
-Weekly<-matrix(NA,52,6,
-	dimnames=list(1:52,2015:2020))
+Weekly<-matrix(NA,52,5,
+	dimnames=list(1:52,2016:2020))
 for(i in 1:length(ages)){
 	ii<-which(Data[,grep("Age.Group",colnames(Data))]==ages[i])
 	ii<-ii[1:(length(ii)/2)]
 	Tmp<-Data[ii,]
-	for(j in 1:6){
-		ii<-which(Tmp$Year==(2014+j))
-		if(i==1) Weekly[ii-52*(j-1),as.character(2014+j)]<-0
-		Weekly[ii-52*(j-1),as.character(2014+j)]<-
-			Weekly[ii-52*(j-1),as.character(2014+j)]+
+	for(j in 1:5){
+		ii<-which(Tmp$Year==(2015+j))
+		if(i==1) Weekly[ii-52*j,as.character(2015+j)]<-0
+		Weekly[ii-52*j,as.character(2015+j)]<-
+			Weekly[ii-52*j,as.character(2015+j)]+
 			Tmp[ii,"Number.of.Deaths"]
 	}
 }
 corrected<-Weekly
-corrected[,1:5]<-Weekly[,1:5]*matrix(US.popn[6]/US.popn[1:5],52,5,
+corrected[,1:4]<-Weekly[,1:4]*matrix(US.popn[5]/US.popn[1:4],52,4,
 	byrow=TRUE)
 par(mfrow=c(2,1),mar=c(5.1,5.1,2.1,2.1))
 plot(NA,xlim=c(1,52),ylim=c(0,max(corrected,na.rm=TRUE)),bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="CDC provisional death count (all ages)",line=3.5,cex.lab=0.9)
 barplot(corrected[,"2020"],width=0.8,space=0.25,add=TRUE,axes=FALSE,names.arg="")
-for(i in 1:5){
+for(i in 1:4){
 	lines(1:52,corrected[,i])
 }
-lines(1:52,rowMeans(corrected[,1:5]),lwd=4,col=palette()[4])
-legend("bottomright",c("average weekly deaths\n2015-2019",
-	"weekly deaths 2015-2019",
+lines(1:52,rowMeans(corrected[,1:4]),lwd=4,col=palette()[4])
+legend("bottomright",c("average weekly deaths\n2016-2019",
+	"weekly deaths 2016-2019",
 	"weekly deaths 2020"),bty="n",pch=c(NA,NA,22),pt.bg=c(NA,NA,"grey"),
 	cex=0.7,pt.cex=c(NA,NA,1.2),lwd=c(2,1,NA),col=c(palette()[4],"black",
 	"black"))
-Expected<-rowMeans(corrected[,1:5])
-deaths.2020<-corrected[,"2020"]
-deaths.2020<-deaths.2020[!is.na(deaths.2020)]
-excess.2020<-deaths.2020-Expected[1:length(deaths.2020)]
-cs<-cumsum(excess.2020)
-plot(NA,xlim=c(1,52),ylim=c(-5000,300000),
+Expected<-rowMeans(corrected[,1:4])
+deaths.2020.all<-corrected[,"2020"]
+deaths.2020.all<-deaths.2020.all[!is.na(deaths.2020.all)]
+excess.2020.all<-deaths.2020.all-Expected[1:length(deaths.2020.all)]
+cs<-cumsum(excess.2020.all)
+plot(NA,xlim=c(1,52),ylim=range(c(0,cs)),
 	bty="n",xlab="Week (1:52)",
 	ylab="",las=1,cex.axis=0.8,cex.lab=0.9)
 title(ylab="Cumulative CDC excess deaths (all ages)",line=3.5,cex.lab=0.9)
-lines(1:(length(deaths.2020)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
-lines(1:7+(length(deaths.2020)-7),cs[1:7+(length(deaths.2020)-7)],lwd=4,
+lines(1:(length(deaths.2020.all)-6),cs[1:(length(cs)-6)],lwd=4,col=palette()[4])
+lines(1:7+(length(deaths.2020.all)-7),cs[1:7+(length(deaths.2020.all)-7)],lwd=4,
 	lty="dotted",,col=palette()[4])
 legend("bottomright","source: https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm",
 	cex=0.7,bty="n")
@@ -327,11 +377,98 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 	lwd=2,col=palette()[4],bty="n",cex=0.7,seg.len=4)
 ```
 
+<br>
+
+### Summary of excess deaths
 
 Note that in this report I calculated *excess* deaths as the number of deaths above (or below, in which case excess deaths were <0)
-compared to the (population size corrected) mean for 2015-2019. This is different from the excess mortality reported for government
+compared to the (population size corrected) mean for 2016-2019. This is different from the excess mortality reported for government
 statistical purposes, in which excess is sometimes computed as the value in excess of >95% of normal weekly deaths, and negative
 excesses are set to zero.
+
+In the following tables, I show total deaths, total deaths per million population, excess deaths, and excess deaths per million 
+population. Data for population size by age came from 
+[populationpyramid.net](https://www.populationpyramid.net/united-states-of-america/2020/).
+
+The first table gives an analysis of all data through early September, 2020.
+
+```{r, echo=FALSE}
+demographic<-read.csv(file="United States of America-2020.csv",
+	row.names=1)
+pop.by.age<-setNames(c(
+	sum(rowSums(demographic)[1:5]),
+	sum(rowSums(demographic)[6:9]),
+	sum(rowSums(demographic)[10:13]),
+	sum(rowSums(demographic)[14:21]),
+	sum(rowSums(demographic)[1:21])),
+	c("under 25","25-44","45-64","over 65","All ages"))
+death.by.age<-setNames(sapply(
+	list(deaths.2020.u25,deaths.2020.25.44,
+	deaths.2020.45.64,deaths.2020.o65,
+	deaths.2020.all),sum),
+	c("under 25","25-44","45-64","over 65","All ages"))
+excess.by.age<-setNames(sapply(
+	list(excess.2020.u25,excess.2020.25.44,
+	excess.2020.45.64,excess.2020.o65,
+	excess.2020.all),sum),
+	c("under 25","25-44","45-64","over 65","All ages"))
+summaryTable<-data.frame(
+	age.group=names(pop.by.age),
+	death.by.age=death.by.age,
+	death.per.1M=round(death.by.age/(pop.by.age/1000000),2),
+	excess.by.age=round(excess.by.age,2),
+	excess.per.1M=round(excess.by.age/(pop.by.age/1000000),2),
+	percent.excess=paste(
+	round(excess.by.age/(death.by.age-excess.by.age)*100,2),"%",sep=""),
+	population=pop.by.age)
+colnames(summaryTable)<-c("Age group",
+	"Total deaths","Deaths/1M population","Excess deaths",
+	"Excess/1M population","% excess","Total population")
+knitr::kable(summaryTable,
+	caption="**Table 2**: Estimated total deaths, excess deaths, and percent excess deaths (compared to 2016-2019) 
+	by age and overall in the U.S. during 2020.",align="r",
+	format = "html", table.attr = "style='width:100%;'",
+	format.args=list(big.mark=","))
+```
+
+<br>
+
+Recent weeks are incomplete, as noted above. As such I also conducted the same analysis excluding the most recent 4 weeks of data.
+
+The results are as follows.
+
+```{r, echo=FALSE}
+ii<-1:(length(deaths.2020.u25)-4)
+death.by.age<-setNames(sapply(
+	list(deaths.2020.u25[ii],deaths.2020.25.44[ii],
+	deaths.2020.45.64[ii],deaths.2020.o65[ii],
+	deaths.2020.all[ii]),sum),
+	c("under 25","25-44","45-64","over 65","All ages"))
+excess.by.age<-setNames(sapply(
+	list(excess.2020.u25[ii],excess.2020.25.44[ii],
+	excess.2020.45.64[ii],excess.2020.o65[ii],
+	excess.2020.all[ii]),sum),
+	c("under 25","25-44","45-64","over 65","All ages"))
+summaryTable<-data.frame(
+	age.group=names(pop.by.age),
+	death.by.age=death.by.age,
+	death.per.1M=round(death.by.age/(pop.by.age/1000000),2),
+	excess.by.age=round(excess.by.age,2),
+	excess.per.1M=round(excess.by.age/(pop.by.age/1000000),2),
+	percent.excess=paste(
+	round(excess.by.age/(death.by.age-excess.by.age)*100,1),"%",sep=""),
+	population=pop.by.age)
+colnames(summaryTable)<-c("Age group",
+	"Total deaths","Deaths/1M population","Excess deaths",
+	"Excess/1M population","% excess","Total population")
+knitr::kable(summaryTable,
+	caption="**Table 3**: Estimated total deaths, excess deaths, and percent excess deaths (compared to 2016-2019) 
+	by age and overall in the U.S. during 2020. Most recent 4 weeks of data excluded.",align="r",
+	format = "html", table.attr = "style='width:100%;'",
+	format.args=list(big.mark=","))
+```
+
+<br>
 
 Please check my code! It's available (along with data files) [here](https://github.com/liamrevell/CDC_COVID19_deaths).
 
