@@ -1,0 +1,55 @@
+source("state.deaths.R")
+Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
+Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
+States<-read.csv("https://liamrevell.github.io/data/US-population-by-state.csv")
+
+ui<-fluidPage(
+  titlePanel("Provisional death counts by state (all causes)"),
+  sidebarLayout(
+    mainPanel(
+      plotOutput("plot",width="100%",height="800px")
+    ),
+    sidebarPanel(
+      selectInput(inputId="state",label="State or Jurisdiction",
+                  choices=c("Alabama","Alaska","American Samoa","Arizona",
+                            "Arkansas","California","Colorado","Connecticut",
+                            "Delaware","District of Columbia","Florida",
+                            "Georgia","Guam","Hawaii","Idaho","Illinois",
+                            "Indiana","Iowa","Kansas","Kentucky","Louisiana",
+                            "Maine","Maryland","Massachusetts","Michigan","Minnesota",
+                            "Mississippi","Missouri","Montana","Nebraska","Nevada",
+                            "New Hampshire","New Jersey","New Mexico","New York (excluding NYC)","New York City",
+                            "North Carolina","North Dakota","Northern Mariana Islands",
+                            "Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+                            "Rhode Island","South Carolina","South Dakota","Tennessee",
+                            "Texas","U.S. Virgin Islands","Utah","Vermont","Virginia",
+                            "Washington","West Virginia","Wisconsin","Wyoming"),
+                  selected="Massachusetts"),
+      selectInput(inputId="plot",
+                  label="show plot of:",choices=c("raw","per capita","excess",
+                                                  "excess per capita")),
+      selectInput(inputId="type",label="line type",choices=c("smooth","step")),
+      h4("Details:\n"),
+      p("The data for these plots come from the U.S. CDC provisional death counts through September, 2020."),
+      p("Data for recent weeks are incomplete. I nonetheless report all the data here - but this is why we tend to see a drop in excess deaths towards the far right of each plot."),
+      p("To correct for data incompleteness, the CDC uses a weighting algorithm based on reporting patterns in previous years to correct estimated weekly totals."),
+      p("From the CDC: Provisional death counts are weighted to account for incomplete data. However, data for the most recent week(s) are still likely to be incomplete. Weights are based on completeness of provisional data in prior years, but the timeliness of data may have changed in 2020 relative to prior years, so the resulting weighted estimates may be too high in some jurisdictions and too low in others."),
+      p("Data is from the CDC. All data files & code are available",a("here",href="https://github.com/liamrevell/CDC_COVID19_deaths/"),"."),
+      p("Please",a("contact me",href="mailto:liamrevell@umb.edu"),"contact me with any questions.")
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$plot<-renderPlot({
+    options(scipen=10)
+    par(bg="#f8fdff",lend=1)
+    state.deaths(state=input$state,plot=input$plot,
+              las=1,cex.axis=0.7,cex.lab=0.8,
+              type=if(input$type=="step") "s" else "l",
+              data=list(Counts=Counts,Provis=Provis,
+              States=States))
+  })
+}
+
+shinyApp(ui = ui, server = server)

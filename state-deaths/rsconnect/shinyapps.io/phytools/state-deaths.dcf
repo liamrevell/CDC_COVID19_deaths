@@ -1,0 +1,12 @@
+name: state-deaths
+title: state-deaths
+username:
+account: phytools
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2927356
+bundleId: 3692744
+url: https://phytools.shinyapps.io/state-deaths/
+when: 1601581528.74246
+asMultiple: FALSE
+asStatic: FALSE

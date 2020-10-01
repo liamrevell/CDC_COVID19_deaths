@@ -1,25 +1,21 @@
 ---
-title: "CDC weekly 2020 provisional death counts: II"
+title: "CDC weekly 2020 provisional death count analysis"
 output: html_document
 ---
 
-The data for these plots come from the U.S. [CDC provisional death counts](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm) 
-through September, 2020.
+*Updated on September 30, 2020, with data through September 12, 2020.*
 
-Data for recent weeks are incomplete. I nonetheless report all the data here - but this is why we tend to see a *drop* in excess
-deaths towards the far right of each plot. 
+The data for these plots come from the U.S. [CDC provisional death counts](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm) *updated* through  September 12, 2020.
 
-To correct for data incompleteness, the CDC uses a weighting algorithm based on reporting patterns in previous years to correct
-estimated weekly totals. From the CDC: *Provisional death counts are weighted to account for incomplete data. However, 
-data for the most recent week(s) are still likely to be incomplete. Weights are based on completeness of provisional data in prior years, 
-but the timeliness of data may have changed in 2020 relative to prior years, so the resulting weighted estimates may be too high in some 
-jurisdictions and too low in others.* 
+Data for recent weeks are incomplete. I nonetheless report all the data here - but this is why we tend to see a *drop* in excess deaths towards the far right of each plot. 
+
+To correct for data incompleteness, the CDC uses a weighting algorithm based on reporting patterns in previous years to correct estimated weekly totals. 
+
+From the CDC: *Provisional death counts are weighted to account for incomplete data. However, data for the most recent week(s) are still likely to be incomplete. Weights are based on completeness of provisional data in prior years, but the timeliness of data may have changed in 2020 relative to prior years, so the resulting weighted estimates may be too high in some jurisdictions and too low in others.* 
 
 (I used the *weighted* provisional counts, which are always higher than the *unweighted* raw counts.)
 
-Since the population of the U.S. has been *growing* through time, I also used the following U.S. population size estimates (from 
-[worldometers.info](https://www.worldometers.info/world-population/us-population/)) to *correct* expected death counts from 2016-2019 to 
-2020 population size. This correction has only a very small effect on the overall estimate of excess death.
+Since the population of the U.S. has been *growing* through time, I also used the following U.S. population size estimates (from [worldometers.info](https://www.worldometers.info/world-population/us-population/)) to *correct* expected death counts from 2016-2019 to 2020 population size. This correction has only a very small effect on the overall estimate of excess death.
 
 ```{r, echo=FALSE}
 US.popn<-c(323015995,325084756,327096265,
@@ -34,25 +30,17 @@ names(US.popn)<-2016:2020
 
 <br>
 
-I would characterize corrected for overall population size *alone* as a very crude approximation, as it does not account for shifting 
-demographics through time. In general, the U.S. population getting *older* through time. As such not taking into account shifting 
-demographics should tend to *overestimate* the excess mortality of older individuals and *underestimate* the excess mortality of the
-very young.
+I would characterize corrected for overall population size *alone* as a very crude approximation, as it does not account for shifting demographics through time. In general, the U.S. population getting *older* through time. As such not taking into account shifting demographics should tend to *overestimate* the excess mortality of older individuals and *underestimate* the excess mortality of the very young.
 
-The [dataset](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm) that I used for this analysis also included data for 2015.
-Including these did not make a large difference, *except* for the analysis of excess deaths in persons aged 25-44 - in which this one 
-additional year resulted in a 4% (that is, about a 20% change) in the percent excess death. This is hard to explain, so I decided to 
-exclude 2015.
+The [dataset](https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm) that I used for this analysis also included data for 2015. Including 2015 data did not make a large difference, *except* for the analysis of excess deaths in persons aged 25-44 - in which this one additional year resulted in a 4% (that is, about a 20% change) in the *percent* excess death. This is hard to explain, so I decided to exclude 2015.
 
 ### Excess deaths 2020 persons <25
 
 This is a graphical analysis of excess mortality in 2020 among U.S. persons aged under 25 years.
 
-The first plot of shows observed weekly deaths in 2020 (grey bars), (corrected) observed weekly deaths from 2016-2019 (black lines), 
-and expected weekly deaths (blue line), computed by averaging corrected weekly deaths from 2016-2019.
+The first plot of shows observed weekly deaths in 2020 (grey bars), (corrected) observed weekly deaths from 2016-2019 (black lines), and expected weekly deaths (blue line), computed by averaging corrected weekly deaths from 2016-2019.
 
-Data for 2020 are incomplete, and as such have been corrected to account for this incompleteness based on a model of past year reporting
-patterns.
+Data for 2020 are incomplete, and as such have been corrected to account for this incompleteness based on a model of past year reporting patterns.
 
 The second plot shows excess deaths. This is the *difference* between the observed deaths in 2020 and expected deaths, computed as the mean from 2016-2019.
 
@@ -381,16 +369,13 @@ legend("topright","Data in recent weeks\nare incomplete.",lty="dashed",
 
 ### Summary of excess deaths
 
-Note that in this report I calculated *excess* deaths as the number of deaths above (or below, in which case excess deaths were <0)
-compared to the (population size corrected) mean for 2016-2019. This is different from the excess mortality reported for government
-statistical purposes, in which excess is sometimes computed as the value in excess of >95% of normal weekly deaths, and negative
-excesses are set to zero.
+Note that in this report I calculated *excess* deaths as the number of deaths above (or below, in which case excess deaths were < 0) compared to the (population size corrected) mean for 2016-2019. 
 
-In the following tables, I show total deaths, total deaths per million population, excess deaths, and excess deaths per million 
-population. Data for population size by age came from 
-[populationpyramid.net](https://www.populationpyramid.net/united-states-of-america/2020/).
+This is different from the *excess mortality* sometimes reported for government statistical purposes, in which *excess* may be computed as the value in excess of >95% of normal weekly deaths, and negative excesses are set to zero.
 
-The first table gives an analysis of all data through early September, 2020.
+In the following tables, I show total deaths, total deaths per million population, excess deaths, and excess deaths per million population. Data for population size by age came from [populationpyramid.net](https://www.populationpyramid.net/united-states-of-america/2020/).
+
+The first table gives an analysis of all data through early September 12, 2020.
 
 ```{r, echo=FALSE}
 demographic<-read.csv(file="United States of America-2020.csv",
@@ -469,6 +454,14 @@ knitr::kable(summaryTable,
 ```
 
 <br>
+
+### Excess deaths by state
+
+```{r}
+states<-read.csv("US-population-by-state.csv")
+states
+```
+
 
 Please check my code! It's available (along with data files) [here](https://github.com/liamrevell/CDC_COVID19_deaths).
 
