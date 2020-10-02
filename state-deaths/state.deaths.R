@@ -10,13 +10,17 @@ state.deaths<-function(
 	if(!is.null(data$Provis)) Provis<-data$Provis
 	else Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
 	if(!is.null(data$States)) States<-data$States
-	else States<-read.csv("https://liamrevell.github.io/data/US-population-by-state.csv")
-	US.popn<-c(320878310,323015995,325084756,327096265,329064917,331002651)
-	y2019.est<-setNames(as.numeric(gsub(",","",States$Y2019.Estimated.)),
-	  sub(" ","",States$State.Territory))
-	y2019.est["New York"]<-y2019.est["New York"]-8400000
-	y2019.est<-c(y2019.est,setNames(8400000,"New York City"))
-	State.percent<-y2019.est/sum(y2019.est)
+	else States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
+	US.popn<-setNames(c(colSums(States),331002651+States["Puerto Rico",5]),2015:2020)
+	States<-cbind(States,States[,5]/sum(States[,5])*US.popn[6])
+	colnames(States)<-2015:2020
+	nyc<-8336817
+	nyc<-nyc*States["New York",]/States["New York",5]
+	States["New York",]<-as.vector(States["New York",])-nyc
+	States<-rbind(States,nyc)
+	rownames(States)[nrow(States)]<-"New York City"
+	States<-rbind(States,colSums(States))
+	rownames(States)[nrow(States)]<-"United States"
 	Deaths<-matrix(NA,52,6,dimnames=list(1:52,2015:2020))
 	ii<-which(Counts[,1]==state)
 	for(i in 1:4){
@@ -30,12 +34,12 @@ state.deaths<-function(
 		jj<-intersect(ii,jj)
 		Deaths[1:length(jj),i]<-Provis[jj,"All.Cause"]
 	}
-	PerCapita<-(Deaths/(State.percent[state]*matrix(US.popn[1:6],52,6,
-		byrow=TRUE)))*1000000
+	PerCapita<-(Deaths/matrix(as.numeric(States[state,]),52,6,
+		byrow=TRUE))*1000000
 	PerCapitaExcess<-PerCapita-matrix(rowMeans(PerCapita[,1:5]),52,6)
 	if(corrected){
-		Deaths<-Deaths*matrix(US.popn[6]/US.popn[1:6],52,6,
-			byrow=TRUE)
+		Deaths<-Deaths*matrix(as.numeric(States[state,6])/
+			as.numeric(States[state,1:6]),52,6,byrow=TRUE)
 	}
 	Normal<-rowMeans(Deaths[,1:5])
 	Excess<-Deaths-matrix(Normal,52,6)
