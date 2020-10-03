@@ -31,12 +31,17 @@ ui<-fluidPage(
       checkboxInput(inputId="corrected",
                     label="correct to 2020 U.S. population (per capita rates are automatically corrected)",
                     value=TRUE),
+      dateRangeInput(inputId="start.end",label="starting & ending dates:",
+                     start=as.Date("01/04/2020",format="%m/%d/%Y"),
+                     end=as.Date("12/26/2020",format="%m/%d/%Y"),
+                     min=as.Date("01/04/2020",format="%m/%d/%Y"),
+                     max=as.Date("12/26/2020",format="%m/%d/%Y"),startview="month"),
       selectInput(inputId="type",label="line type",choices=c("smooth","step")),
       h4("Details:\n"),
-      p("The data for these plots come from the U.S. CDC provisional death counts through September, 2020."),
-      p("Data for recent weeks are incomplete. I nonetheless report all the data here - but this is why we tend to see a drop in excess deaths towards the far right of each plot."),
+      p("The data for these plots come from the U.S. CDC provisional death counts through September, 2020. Data for recent weeks are incomplete."),
       p("To correct for data incompleteness, the CDC uses a weighting algorithm based on reporting patterns in previous years to correct estimated weekly totals."),
-      p("From the CDC: Provisional death counts are weighted to account for incomplete data. However, data for the most recent week(s) are still likely to be incomplete. Weights are based on completeness of provisional data in prior years, but the timeliness of data may have changed in 2020 relative to prior years, so the resulting weighted estimates may be too high in some jurisdictions and too low in others."),
+      p("For more information please refer to the",a("CDC technical notes",
+        href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/tech_notes.htm",.noWS="after"),"."),
       p("Data is from the",a("CDC",href="https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/3yf8-kanr",
         .noWS="after"),". State population size data is from the",a("U.S. census bureau",
         href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html",.noWS="after"),
@@ -50,12 +55,14 @@ ui<-fluidPage(
 server <- function(input, output) {
   output$plot<-renderPlot({
     options(scipen=10)
-    par(bg="#f8fdff",lend=1)
+    par(lend=1)
     state.deaths(state=input$state,plot=input$plot,
-              las=1,cex.axis=0.7,cex.lab=0.8,
+              las=1,cex.axis=0.8,cex.lab=0.9,
               type=if(input$type=="step") "s" else "l",
               data=list(Counts=Counts,Provis=Provis,
-              States=States),corrected=input$corrected)
+              States=States),corrected=input$corrected,
+              date.range=list(start.date=input$start.end[1],
+              end.date=input$start.end[2]))
   })
 }
 

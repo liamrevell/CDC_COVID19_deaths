@@ -1,7 +1,7 @@
 state.deaths<-function(
 	state="Massachusetts",
 	plot=c("raw","per capita","excess","excess per capita"),
-	corrected=FALSE,data=list(),...){
+	corrected=FALSE,data=list(),date.range=list(),...){
 	plot<-plot[1]
 	ss<-state
 	if(state=="New York (excluding NYC)") state<-"New York"
@@ -11,6 +11,18 @@ state.deaths<-function(
 	else Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
 	if(!is.null(data$States)) States<-data$States
 	else States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
+	if(!is.null(date.range$start.date)){ 
+	  start.date<-date.range$start.date
+	  if(!isDate(start.date)) start.date<-as.Date(start.date,format="%m/%d/%Y")
+	} else start.date<-as.Date("01/04/2020",format="%m/%d/%Y")
+	if(!is.null(date.range$end.date)){
+	  end.date<-date.range$end.date
+	  if(!isDate(end.date)) end.date<-as.Date(end.date,format="%m/%d/%Y")
+	} else end.date<-as.Date("01/02/2021",format="%m/%d/%Y")
+	jj<-which(Provis$MMWR.Year==2020)
+	dates<-seq.Date(as.Date("01/04/2020",format="%m/%d/%Y"),by=7,length.out=52)
+  start.week<-which(abs(start.date-dates)==min(abs(start.date-dates)))
+	end.week<-which(abs(end.date-dates)==min(abs(end.date-dates)))
 	US.popn<-setNames(c(colSums(States),331002651+States["Puerto Rico",5]),2015:2020)
 	States<-cbind(States,States[,5]/sum(States[,5])*US.popn[6])
 	colnames(States)<-2015:2020
@@ -43,52 +55,90 @@ state.deaths<-function(
 	}
 	Normal<-rowMeans(Deaths[,1:5])
 	Excess<-Deaths-matrix(Normal,52,6)
+	ms<-(cumsum(c(0,31,29,31,30,31,30,31,31,30,31,30))+15-4)/7
+	mm<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
+	      "Sep","Oct","Nov","Dec")
 	if(plot=="raw"){
 		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,2.1))
-		plot(NA,xlim=c(1,52),ylim=c(0,1.05*max(Deaths,na.rm=TRUE)),
-			bty="n",xlab="",ylab="Death count",...)
+		plot(NA,xlim=c(start.week,end.week),
+		  ylim=c(0,1.05*max(Deaths,na.rm=TRUE)),
+			bty="o",xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Death count",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+    do.call(axis,Args)
+		box()
 		for(i in 1:5) lines(1:52,Deaths[,i],col="grey",...)
 		d2020<-Deaths[,"2020"]
 		d2020<-d2020[!is.na(d2020)]
 		lines(1:(length(d2020)-5),d2020[1:(length(d2020)-5)],lwd=3,
-			col=palette()[4],...)
+		      col=palette()[4],...)
 		lines((length(d2020)-5):length(d2020),
-			d2020[(length(d2020)-5):length(d2020)],lwd=3,
-			col=palette()[4],lty="dashed",...)
+		      d2020[(length(d2020)-5):length(d2020)],lwd=3,
+		      col=palette()[4],lty="dashed",...)
 		legend(x=mean(par()$usr[1:2]),y=par()$usr[3]-0.13*diff(par()$usr[3:4]),
-			c("weekly deaths 2015-2019",
-			"weekly deaths 2020"),bty="n",cex=1,
-			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
-			xjust=0.5,yjust=1)
+		       c("weekly deaths 2015-2019",
+		         "weekly deaths 2020"),bty="n",cex=1,
+		       lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
+		       xjust=0.5,yjust=1)
 		legend("topleft","Data in recent weeks\nare incomplete.",lty="dashed",
-			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4)
-		grid()
+		       lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4,
+		       bg=rgb(0,0,0,alpha=0.5))
+		grid(col="grey")
 		mtext(paste("a) total death count (or provisional count), all causes,",
-			ss),adj=0,line=1,cex=1)
-		plot(NA,xlim=c(1,52),ylim=c(0,1.05*max(colSums(Deaths,na.rm=TRUE))),
-			bty="n",xlab="",ylab="Death count",...)
+		            ss),adj=0,line=1,cex=1)
+		plot(NA,xlim=c(start.week,end.week),ylim=c(0,1.05*max(colSums(Deaths,na.rm=TRUE))),
+		     bty="o",xlab="",ylab="",
+		     axes=FALSE,...)
+		title(ylab="Death count",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		for(i in 1:5) lines(1:52,cumsum(Deaths[,i]),col="grey",...)
 		d2020<-Deaths[,"2020"]
 		d2020<-d2020[!is.na(d2020)]
 		d2020<-cumsum(d2020)
 		lines(1:(length(d2020)-5),d2020[1:(length(d2020)-5)],lwd=3,
-			col=palette()[4],...)
+		      col=palette()[4],...)
 		lines((length(d2020)-5):length(d2020),
-			d2020[(length(d2020)-5):length(d2020)],lwd=3,
-			col=palette()[4],lty="dashed",...)
+		      d2020[(length(d2020)-5):length(d2020)],lwd=3,
+		      col=palette()[4],lty="dashed",...)
 		legend(x=mean(par()$usr[1:2]),y=par()$usr[3]-0.13*diff(par()$usr[3:4]),
-			c("cumulative deaths 2015-2019",
-			"cumulative deaths 2020"),bty="n",cex=1,
-			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
-			xjust=0.5,yjust=1)
-		grid()
+		       c("cumulative deaths 2015-2019",
+		         "cumulative deaths 2020"),bty="n",cex=1,
+		       lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
+		       xjust=0.5,yjust=1)
+		grid(col="grey")
 		mtext(paste("b) cumulative death count (or provisional count), all causes,",
-			ss),adj=0,line=1,cex=1)
+		            ss),adj=0,line=1,cex=1)
 	} else if(plot=="excess"){
 		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,2.1))
-		plot(NA,xlim=c(1,52),ylim=c(min(Excess[,1:5]),
-			1.05*max(Excess,na.rm=TRUE)),bty="n",
-			xlab="",ylab="Excess death count",...)
+		plot(NA,xlim=c(start.week,end.week),ylim=c(min(Excess[,1:5]),
+			1.05*max(Excess,na.rm=TRUE)),bty="o",
+			xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Excess death count",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		lines(c(1,52),c(0,0))
 		for(i in 1:5) lines(1:52,Excess[,i],col="grey",...)
 		e2020<-Excess[,"2020"]
@@ -104,13 +154,24 @@ state.deaths<-function(
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
 		legend("topleft","Data in recent weeks\nare incomplete.",lty="dashed",
-			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4)
-		grid()
+			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4,bg=rgb(0,0,0,alpha=0.5))
+		grid(col="grey")
 		mtext(paste("a) excess death count (or provisional count), all causes,",
 			ss),adj=0,line=1,cex=1)
-		plot(NA,xlim=c(1,52),ylim=c(min(apply(Excess,2,cumsum),na.rm=TRUE),
+		plot(NA,xlim=c(start.week,end.week),ylim=c(min(apply(Excess,2,cumsum),na.rm=TRUE),
 	    1.05*max(apply(Excess,2,cumsum),na.rm=TRUE)),
-			bty="n",xlab="",ylab="Excess death count",...)
+			bty="o",xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Excess death count",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		lines(c(1,52),c(0,0))
 		for(i in 1:5) lines(1:52,cumsum(Excess[,i]),col="grey",...)
 		e2020<-cumsum(e2020)
@@ -124,15 +185,26 @@ state.deaths<-function(
 			"excess deaths 2020"),bty="n",cex=1,
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
-		grid()
+		grid(col="grey")
 		mtext(paste(
 			"b) cumulative excess death count (or provisional count), all causes,",
 			ss),adj=0,line=1,cex=1)
 	} else if(plot=="per capita"){
 		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,2.1))
-		plot(NA,xlim=c(1,52),ylim=c(0,
-			1.05*max(PerCapita,na.rm=TRUE)),bty="n",
-			xlab="",ylab="Deaths/1M population",...)
+		plot(NA,xlim=c(start.week,end.week),ylim=c(0,
+			1.05*max(PerCapita,na.rm=TRUE)),bty="o",
+			xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Deaths/1M population",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		lines(c(1,52),c(0,0))
 		for(i in 1:5) lines(1:52,PerCapita[,i],col="grey",...)
 		pc2020<-PerCapita[,"2020"]
@@ -143,17 +215,28 @@ state.deaths<-function(
 			pc2020[(length(pc2020)-5):length(pc2020)],lwd=3,
 			col=palette()[4],lty="dashed",...)
 		legend("topleft","Data in recent weeks\nare incomplete.",lty="dashed",
-			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4)
+			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4,bg=rgb(0,0,0,alpha=0.5))
 		legend(x=mean(par()$usr[1:2]),y=par()$usr[3]-0.13*diff(par()$usr[3:4]),
 			c("weekly deaths/1M population 2015-2019",
 			"weekly deaths/1M population 2020"),bty="n",cex=1,
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
-		grid()
+		grid(col="grey")
 		mtext(paste("a) deaths/1M population (or provisional), all causes,",
 			ss),adj=0,line=1,cex=1)
-		plot(NA,xlim=c(1,52),ylim=c(0,1.05*max(apply(PerCapita,2,cumsum),na.rm=TRUE)),
-			bty="n",xlab="",ylab="Deaths/1M population",...)
+		plot(NA,xlim=c(start.week,end.week),ylim=c(0,1.05*max(apply(PerCapita,2,cumsum),na.rm=TRUE)),
+			bty="o",xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Deaths/1M population",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		for(i in 1:5) lines(1:52,cumsum(PerCapita[,i]),col="grey",...)
 		pc2020<-cumsum(pc2020)
 		lines(1:(length(pc2020)-5),pc2020[1:(length(pc2020)-5)],lwd=3,
@@ -166,15 +249,26 @@ state.deaths<-function(
 			"cumulative deaths/1M population 2020"),bty="n",cex=1,
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
-		grid()
+		grid(col="grey")
 		mtext(paste(
 			"b) cumulative deaths/1M population (or provisional), all causes,",
 			ss),adj=0,line=1,cex=1)
 	} else if(plot=="excess per capita"){
 		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,2.1))
-		plot(NA,xlim=c(1,52),ylim=c(min(PerCapitaExcess[,1:5]),
-			1.05*max(PerCapitaExcess,na.rm=TRUE)),bty="n",
-			xlab="",ylab="Excess deaths/1M population",...)
+		plot(NA,xlim=c(start.week,end.week),ylim=c(min(PerCapitaExcess[,1:5]),
+			1.05*max(PerCapitaExcess,na.rm=TRUE)),bty="o",
+			xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Excess deaths/1M population",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		lines(c(1,52),c(0,0))
 		for(i in 1:5) lines(1:52,PerCapitaExcess[,i],col="grey",...)
 		pce2020<-PerCapitaExcess[,"2020"]
@@ -190,13 +284,24 @@ state.deaths<-function(
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
 		legend("topleft","Data in recent weeks\nare incomplete.",lty="dashed",
-			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4)
-		grid()
+			lwd=3,col=palette()[4],bty="n",cex=0.8,seg.len=4,bg=rgb(0,0,0,alpha=0.5))
+		grid(col="grey")
 		mtext(paste("a) excess deaths/1M population (or provisional), all causes,",
 			ss),adj=0,line=1,cex=1)
-		plot(NA,xlim=c(1,52),ylim=c(min(apply(PerCapitaExcess,2,cumsum),na.rm=TRUE),
+		plot(NA,xlim=c(start.week,end.week),ylim=c(min(apply(PerCapitaExcess,2,cumsum),na.rm=TRUE),
 		  1.05*max(apply(PerCapitaExcess,2,cumsum),na.rm=TRUE)),
-			bty="n",xlab="",ylab="Excess deaths/1M population",...)
+			bty="o",xlab="",ylab="",
+			axes=FALSE,...)
+		title(ylab="Excess deaths/1M population",line=4)
+		Args<-list(...)
+		Args$type<-NULL
+		Args$side<-2
+		do.call(axis,Args)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		box()
 		lines(c(1,52),c(0,0))
 		for(i in 1:5) lines(1:52,cumsum(PerCapitaExcess[,i]),col="grey",...)
 		pce2020<-cumsum(pce2020)
@@ -210,9 +315,12 @@ state.deaths<-function(
 			"cumulative excess deaths/1M population 2020"),bty="n",cex=1,
 			lwd=c(1,2),col=c("grey",palette()[4]),seg.len=4,xpd=TRUE,
 			xjust=0.5,yjust=1)
-		grid()
+		grid(col="grey")
 		mtext(paste(
 			"b) cumulative excess deaths/1M population (or provisional), all causes,",
 			ss),adj=0,line=1,cex=1)
 	}
 }
+
+isDate<-function(date) inherits(date,"Date")
+
