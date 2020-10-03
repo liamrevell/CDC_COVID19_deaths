@@ -1,0 +1,119 @@
+---
+title: "Excess mortality explorer: Methodology"
+output: html_document
+---
+
+```{r, echo=FALSE}
+options(knitr.kable.NA ='')
+```
+
+This document gives a detailed methodology for my [excess mortality explorer](https://liamrevell.github.io/excess-mortality-explorer.html) web application. All code and data for the explorer are also available on my [GitHub](https://github.com/liamrevell/CDC_COVID19_deaths).
+
+## State populations
+
+I obtained state populations through time from the [U.S. Census Bureau](https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html).
+
+Data is only given through 2019, so to obtain state-level 2020 population sizes, I used a total mid-year 2020 U.S. population estimate of 331,002,651 (e.g. [source](https://www.worldometers.info/world-population/us-population/)) to 'correct' each 2019 state population size to a 2020 level.
+
+My dataset did *not* include a separate population size estimate for Puerto Rico - so I used the values from [Wikipedia](https://en.wikipedia.org/wiki/Demographics_of_Puerto_Rico), and a similar correction to adjust to 2020 levels. (This probably resulted in a mid-2020 population size that is too *high* based on this alternative [source](https://ns.worldometers.info/world-population/puerto-rico-population/).)
+
+Finally, CDC mortality data splits New York City (NYC) from the rest of New York state. Since this contrast is interesting, I maintained this separation - and used a mid-2019 population estimate of 8,336,817 for NYC ([source](https://en.wikipedia.org/wiki/New_York_City)), and then simply assumed that the population of NYC has changed between 2015 and 2020 in proportion to the rest of the state. (Since they have a part:whole relationship, this seemed pretty reasonable.)
+
+```{r, echo=FALSE}
+source("state.deaths.R")
+States<-state.deaths(plot="States")
+States<-States[sort(rownames(States)),]
+States<-States[-which(rownames(States)=="United States"),]
+knitr::kable(round(States),
+	caption="**Table 1**: Estimated state population by year for 50 states, D.C., and Puerto Rico. New York is divided into two jurisdictions: New York City and New York, excluding NYC.",
+	align="r",format = "html", table.attr = "style='width:100%;'",
+	format.args=list(big.mark=","))
+```
+
+## All causes death data
+
+I used the [2014-2018 weekly counts of deaths by state and select causes](https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/3yf8-kanr) and the [2019-2020 provisional death counts](https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/muzy-jte6) from the National Center for Health Statistics (NCHS).
+
+Provisional death counts are incomplete, particularly for recent weeks, due to the lag time between when a death occurs and when a death certificate is submitted to the NCHS. This accounts for the drop-off in excess deaths towards the right of each plot in 2020 data. This lag may also differ between different jurisdictions.
+
+To compute the raw death counts for any jurisdiction, I simply tabulated the 2015-2018 counts (I excluded 2014) with the 2019-2020 provisional counts. The following table gives an example of tabulated death counts for a the state of Massachusetts.
+
+```{r, echo=FALSE}
+Deaths<-state.deaths(plot="Deaths")
+Deaths<-cbind(Week=1:52,Deaths)
+knitr::kable(Deaths,
+	caption="**Table 2**: Weekly death counts and provisional death counts in Massachusetts according to the NCHS from 2015 through 2020.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
+
+## Correcting death counts to 2020 populations
+
+To *correct* observed deaths in prior years to 2020 levels, I simply multiplied the past-year death tally by the ratio the jurisdiction population in 2020 compared to the population in the past year.
+
+Table 3 gives an example using the jurisdiction of New Jersey.
+
+```{r, echo=FALSE}
+Deaths<-state.deaths(state="New Jersey",plot="Deaths",corrected=TRUE)
+Deaths<-cbind(Week=1:52,Deaths)
+knitr::kable(round(Deaths,1),
+	caption="**Table 3**: Weekly death counts and provisional death counts in New Jersey, corrected to New Jersey 2020 estimated population.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
+
+## Excess deaths in 2020
+
+To compute excess deaths for any jurisdiction, I simply took each column of Table 2 (or Table 3, for corrected death counts) and *subtracted* the mean of columns 2015 through 2019. This treats 2015 through 2019 as 'normal' years, and 2020 as [unusual](https://en.wikipedia.org/wiki/COVID-19_pandemic). Table 4 gives an example of this calculation using the jurisdiction of Texas, and weekly death counts from 2015-2019 corrected to 2020 population.
+
+```{r, echo=FALSE}
+Excess<-state.deaths(state="Texas",plot="Excess",corrected=TRUE)
+Excess<-cbind(Week=1:52,Excess)
+knitr::kable(round(Excess,1),
+	caption="**Table 4**: Weekly excess death counts and provisional death counts in Texas, compared to 2015-2019 corrected death counts.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
+
+## Per capita death rates
+
+To compute the weekly death rate per one-million population, I simply divided the total number of deaths in Table 2 by the total population (in millions) of each jurisdiction. Note, that since I used different population sizes for each year of data (Table 1) the notion of 'correcting' to 2020 population size is meaningless here.
+
+Table 5 gives the weekly per 1M population death rate for the District of Columbia.
+
+```{r, echo=FALSE}
+PerCapita<-state.deaths(state="District of Columbia",plot="PerCapita")
+PerCapita<-cbind(Week=1:52,PerCapita)
+knitr::kable(round(PerCapita,1),
+	caption="**Table 5**: Weekly deaths and provisional deaths per 1M population in the District of Columbia.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
+
+## Excess per capita deaths
+
+To compute the weekly excess per capita deaths (once again, per 1M population), I merely took the excess deaths and divided by the population size of the corresponding jurisdiction - in millions. The cumulative excess per capita deaths is one way of measuring the death toll of COVID-19.
+
+Table 6 gives the weekly per 1M population excess death rate for New York City.
+
+```{r, echo=FALSE}
+PerCapitaExcess<-state.deaths(state="New York City",plot="PerCapitaExcess")
+PerCapitaExcess<-cbind(Week=1:52,PerCapitaExcess)
+knitr::kable(round(PerCapitaExcess,1),
+	caption="**Table 6**: Weekly excess deaths and provisional deaths per 1M population in New York City.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
+
+## Percent above normal
+
+Finally, to calculate the weekly percent above normal, I took the ratio of the observed death counts compare to the mean from 2015-2019. Once again, this treats 2015 through 2019 as 'normal' years, and 2020 as [unusual](https://en.wikipedia.org/wiki/COVID-19_pandemic). Table 7 gives an example of the weekly percent above normal for the jurisdiction of Louisiana. To accumulate the percent above normal, we cannot simply accumulate the week-by-week percentages (as we do for excess deaths). Instead we must compute the cumulative deaths in each year and compare them to the 2015-2019 average cumulative deaths by the same week.
+
+```{r, echo=FALSE}
+PercentAbove<-state.deaths(state="Louisiana",plot="PercentAbove")
+PercentAbove<-cbind(Week=1:52,PercentAbove)
+knitr::kable(round(PercentAbove,1),
+	caption="**Table 7**: Weekly percent above normal deaths for Louisiana.",
+	align="r",format = "html", table.attr = "style='width:40%;'",
+	format.args=list(big.mark=","))
+```
