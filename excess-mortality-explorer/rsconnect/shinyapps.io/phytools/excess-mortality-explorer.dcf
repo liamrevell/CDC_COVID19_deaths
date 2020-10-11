@@ -1,0 +1,12 @@
+name: excess-mortality-explorer
+title: excess-mortality-explorer
+username:
+account: phytools
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2987282
+bundleId: 3725125
+url: https://phytools.shinyapps.io/excess-mortality-explorer/
+when: 1602376891.03055
+asMultiple: FALSE
+asStatic: FALSE

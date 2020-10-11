@@ -117,3 +117,9 @@ knitr::kable(round(PercentAbove,1),
 	align="r",format = "html", table.attr = "style='width:40%;'",
 	format.args=list(big.mark=","))
 ```
+
+<br>
+
+Please don't trust me. Check my [code](https://github.com/liamrevell/CDC_COVID19_deaths/tree/master/state-deaths)!
+
+*Updated 7 October 2020*.
