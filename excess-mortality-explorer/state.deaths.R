@@ -67,8 +67,6 @@ state.deaths<-function(
 			ylim=c(0,1.05*max(Deaths,na.rm=TRUE)),
 			bty="o",xlab="",ylab="",
 			axes=FALSE,...)
-		#rect(par()$usr[1],par()$usr[3],par()$usr[2],par()$usr[4],
-		#	border=grey(0.75),col=grey(0.99))
 		title(ylab="Death count",line=4)
 		Args<-list(...)
 		Args$type<-NULL

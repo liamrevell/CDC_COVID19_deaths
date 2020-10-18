@@ -2,18 +2,19 @@ library(shiny)
 library(shinyWidgets)
 source("state.deaths.R")
 source("age.deaths.R")
+source("case.estimator.R")
 Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
 Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
-
-age.Counts<-read.csv("Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
+age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
+Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
 
 ui<-fluidPage(
   setBackgroundColor(
     color = c("white", "#E8E8E8"),
     gradient = "linear",
     direction = "bottom"
-  ),
+	),
 	tabsetPanel(
 		tabPanel("Excess mortality by age", fluid = TRUE,
 		  verticalLayout(
@@ -122,6 +123,54 @@ ui<-fluidPage(
 		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 		           width=12)
 		         )
+		),
+		tabPanel("COVID-19 case estimator", fluid = TRUE,
+		  verticalLayout(
+			sidebarLayout(
+				sidebarPanel(
+					selectInput(inputId="state.cases",label="State or jurisdiction",
+						choices=c("Alabama","Alaska","Arizona",
+							"Arkansas","California","Colorado","Connecticut",
+							"Delaware","District of Columbia","Florida",
+							"Georgia","Hawaii","Idaho","Illinois",
+							"Indiana","Iowa","Kansas","Kentucky","Louisiana",
+							"Maine","Maryland","Massachusetts","Michigan","Minnesota",
+							"Mississippi","Missouri","Montana","Nebraska","Nevada",
+							"New Hampshire","New Jersey","New Mexico","New York (excluding NYC)",
+							"New York City","North Carolina","North Dakota",
+							"Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+							"Rhode Island","South Carolina","South Dakota","Tennessee",
+							"Texas","Utah","Vermont","Virginia",
+							"Washington","West Virginia","Wisconsin","Wyoming"),
+							selected="Massachusetts"),
+					sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.5,
+						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+					sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.5,
+						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+					sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.5,
+						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+					sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.5,
+						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+					sliderInput(inputId="delay",label="Delay for estimated cases:",
+					  value=21,min=0,max=30,ticks=FALSE),
+					checkboxInput(inputId="cumulative.cases",
+					  label="show cumulative cases",
+					  value=FALSE)
+				),
+				mainPanel(
+				  plotOutput("plot.cases",width="100%",height="800px")
+				)
+			),
+			sidebarPanel(
+		  	p(strong("Details:"),"The data for these plots come from the U.S. CDC COVID-19 Cases and Deaths by State over Time.", 
+			    em("Estimated"),"cases are based on CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+		  	  em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
+			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",
+			    target="_blank",.noWS="outside"),". All data files & code are available",a("here",
+			    href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+			    "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+			  width=12)
+		  )
 		)
 	)
 )
@@ -151,6 +200,16 @@ server <- function(input, output) {
 			date.range=list(
 			start.date=input$start.end.age[1],
 			end.date=input$start.end.age[2]))
+	})
+	output$plot.cases<-renderPlot({
+		options(scipen=10)
+		par(lend=1)
+		case.estimator(state=input$state.cases,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			data=list(Cases=Cases),
+			cumulative=input$cumulative.cases,
+			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4)/100,
+			delay=input$delay)
 		})
 }
 
