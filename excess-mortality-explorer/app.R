@@ -16,6 +16,56 @@ ui<-fluidPage(
     direction = "bottom"
 	),
 	tabsetPanel(
+	  tabPanel("COVID-19 case estimator", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 selectInput(inputId="state.cases",label="State or jurisdiction",
+	                             choices=c("Alabama","Alaska","Arizona",
+	                                       "Arkansas","California","Colorado","Connecticut",
+	                                       "Delaware","District of Columbia","Florida",
+	                                       "Georgia","Hawaii","Idaho","Illinois",
+	                                       "Indiana","Iowa","Kansas","Kentucky","Louisiana",
+	                                       "Maine","Maryland","Massachusetts","Michigan","Minnesota",
+	                                       "Mississippi","Missouri","Montana","Nebraska","Nevada",
+	                                       "New Hampshire","New Jersey","New Mexico","New York (excluding NYC)",
+	                                       "New York City","North Carolina","North Dakota",
+	                                       "Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+	                                       "Rhode Island","South Carolina","South Dakota","Tennessee",
+	                                       "Texas","Utah","Vermont","Virginia",
+	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
+	                             selected="Massachusetts"),
+	                 sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.5,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.5,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.5,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.5,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay",label="Delay for estimated cases:",
+	                             value=21,min=0,max=30,ticks=FALSE),
+	                 checkboxInput(inputId="cumulative.cases",
+	                               label="show cumulative cases",
+	                               value=FALSE)
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.cases",width="100%",height="800px")
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	                 a("COVID-19 Cases and Deaths by State over Time",
+	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
+	                 ".",
+	                 em("Estimated"),"cases are based on CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
+	                 "All data files & code are available",a("here",
+	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),
 		tabPanel("Excess mortality by age", fluid = TRUE,
 		  verticalLayout(
 			sidebarLayout(
@@ -123,54 +173,6 @@ ui<-fluidPage(
 		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 		           width=12)
 		         )
-		),
-		tabPanel("COVID-19 case estimator", fluid = TRUE,
-		  verticalLayout(
-			sidebarLayout(
-				sidebarPanel(
-					selectInput(inputId="state.cases",label="State or jurisdiction",
-						choices=c("Alabama","Alaska","Arizona",
-							"Arkansas","California","Colorado","Connecticut",
-							"Delaware","District of Columbia","Florida",
-							"Georgia","Hawaii","Idaho","Illinois",
-							"Indiana","Iowa","Kansas","Kentucky","Louisiana",
-							"Maine","Maryland","Massachusetts","Michigan","Minnesota",
-							"Mississippi","Missouri","Montana","Nebraska","Nevada",
-							"New Hampshire","New Jersey","New Mexico","New York (excluding NYC)",
-							"New York City","North Carolina","North Dakota",
-							"Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
-							"Rhode Island","South Carolina","South Dakota","Tennessee",
-							"Texas","Utah","Vermont","Virginia",
-							"Washington","West Virginia","Wisconsin","Wyoming"),
-							selected="Massachusetts"),
-					sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.5,
-						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-					sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.5,
-						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-					sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.5,
-						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-					sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.5,
-						min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-					sliderInput(inputId="delay",label="Delay for estimated cases:",
-					  value=21,min=0,max=30,ticks=FALSE),
-					checkboxInput(inputId="cumulative.cases",
-					  label="show cumulative cases",
-					  value=FALSE)
-				),
-				mainPanel(
-				  plotOutput("plot.cases",width="100%",height="800px")
-				)
-			),
-			sidebarPanel(
-		  	p(strong("Details:"),"The data for these plots come from the U.S. CDC COVID-19 Cases and Deaths by State over Time.", 
-			    em("Estimated"),"cases are based on CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
-		  	  em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
-			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",
-			    target="_blank",.noWS="outside"),". All data files & code are available",a("here",
-			    href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
-			    "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
-			  width=12)
-		  )
 		)
 	)
 )
