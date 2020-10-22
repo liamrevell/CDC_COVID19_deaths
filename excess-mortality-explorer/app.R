@@ -21,7 +21,7 @@ ui<-fluidPage(
 	             sidebarLayout(
 	               sidebarPanel(
 	                 selectInput(inputId="state.cases",label="State or jurisdiction",
-	                             choices=c("Alabama","Alaska","Arizona",
+	                             choices=c("United States","Alabama","Alaska","Arizona",
 	                                       "Arkansas","California","Colorado","Connecticut",
 	                                       "Delaware","District of Columbia","Florida",
 	                                       "Georgia","Hawaii","Idaho","Illinois",
@@ -35,22 +35,31 @@ ui<-fluidPage(
 	                                       "Texas","Utah","Vermont","Virginia",
 	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
 	                             selected="Massachusetts"),
-	                 sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.5,
+	                 sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.65,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.5,
+	                 sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.55,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.5,
+	                 sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.45,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.5,
+	                 sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="delay",label="Delay for estimated cases:",
+	                 sliderInput(inputId="ifr5",label="IFR Jan. 1, 2021 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay",label="Lag-time from infection to death (for estimated cases):",
 	                             value=21,min=0,max=30,ticks=FALSE),
+	                 sliderInput(inputId="window",label="Window for moving averages:",
+	                             value=14,min=1,max=21,ticks=FALSE),
+	                 checkboxInput(inputId="smooth",
+	                               label="use smoothing for estimation",
+	                               value=TRUE),
 	                 checkboxInput(inputId="cumulative.cases",
 	                               label="show cumulative cases",
-	                               value=FALSE)
+	                               value=FALSE),
+	                 width=3
 	               ),
 	               mainPanel(
-	                 plotOutput("plot.cases",width="100%",height="800px")
+	                 plotOutput("plot.cases",width="100%",height="800px"),
+	                 width=9
 	               )
 	             ),
 	             sidebarPanel(
@@ -58,7 +67,7 @@ ui<-fluidPage(
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
-	                 em("Estimated"),"cases are based on CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
 	                 "All data files & code are available",a("here",
 	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
@@ -102,10 +111,12 @@ ui<-fluidPage(
 						start=as.Date("01/01/2020",format="%m/%d/%Y"),
 						end=as.Date("12/31/2020",format="%m/%d/%Y"),
 						min=as.Date("01/01/2020",format="%m/%d/%Y"),
-						max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month")
+						max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month"),
+				  width=3
 				),
 				mainPanel(
-				  plotOutput("plot.age",width="100%",height="800px")
+				  plotOutput("plot.age",width="100%",height="800px"),
+				  width=9
 				)
 			),
 			sidebarPanel(
@@ -149,11 +160,12 @@ ui<-fluidPage(
 		                            end=as.Date("12/31/2020",format="%m/%d/%Y"),
 		                            min=as.Date("01/01/2020",format="%m/%d/%Y"),
 		                            max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month"),
-		             selectInput(inputId="type",label="Line type",choices=c("smooth","step")),
-
+		            selectInput(inputId="type",label="Line type",choices=c("smooth","step")),
+                width=3  
 		           ),
 		           mainPanel(
-		             plotOutput("plot.state",width="100%",height="800px")
+		             plotOutput("plot.state",width="100%",height="800px"),
+		             width=9
 		           )
 		         ),
 		         sidebarPanel(
@@ -210,8 +222,8 @@ server <- function(input, output) {
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			data=list(Cases=Cases),
 			cumulative=input$cumulative.cases,
-			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4)/100,
-			delay=input$delay)
+			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			delay=input$delay,window=input$window,smooth=input$smooth)
 		})
 }
 
