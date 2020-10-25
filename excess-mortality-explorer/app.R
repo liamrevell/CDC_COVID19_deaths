@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyWidgets)
 library(phytools)
+library(maps)
 source("state.deaths.R")
 source("age.deaths.R")
 source("case.estimator.R")
@@ -9,8 +10,10 @@ Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_S
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
 age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
+## Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
+Centers<-read.csv("Centers.csv")
 
-data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases)
+Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers)
 
 ui<-fluidPage(
   setBackgroundColor(
@@ -19,6 +22,50 @@ ui<-fluidPage(
     direction = "bottom"
 	),
 	tabsetPanel(
+	  tabPanel("COVID-19 cases by state", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 sliderInput(inputId="ifr1.bs",label="IFR Jan. 1, 2020 (%):",value=0.65,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr2.bs",label="IFR Apr. 1, 2020 (%):",value=0.55,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr3.bs",label="IFR Jul. 1, 2020 (%):",value=0.45,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr4.bs",label="IFR Oct. 1, 2020 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr5.bs",label="IFR Jan. 1, 2021 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay.bs",label="Lag-time from infection to death (for estimated cases):",
+	                             value=21,min=0,max=30,ticks=FALSE),
+	                 sliderInput(inputId="window.bs",label="Window for moving averages:",
+	                             value=14,min=1,max=21,ticks=FALSE),
+	                 checkboxInput(inputId="smooth.bs",
+	                               label="use smoothing for estimation",
+	                               value=TRUE),
+	                 checkboxInput(inputId="show.ifr",
+	                               label="show assumed IFR (%)",
+	                               value=FALSE),
+	                 width=3
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.allstates",width="100%",height="800px"),
+	                 width=9
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	                 a("COVID-19 Cases and Deaths by State over Time",
+	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
+	                 ".",
+	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
+	                 "All data files & code are available",a("here",
+	                  href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),
 	  tabPanel("COVID-19 case estimator", fluid = TRUE,
 	           verticalLayout(
 	             sidebarLayout(
@@ -196,7 +243,7 @@ ui<-fluidPage(
 	)
 )
 
-server <- function(input, output) {
+server <- function(input, output, data=Data) {
 	output$plot.state<-renderPlot({
 		options(scipen=10)
 		par(lend=1)
@@ -233,6 +280,15 @@ server <- function(input, output) {
 			smooth=input$smooth,
 			percent=input$percent)
 		})
+	output$plot.allstates<-renderPlot({
+	  options(scipen=10)
+	  par(lend=1)
+	  cases.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
+	    data=data,
+	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	    delay=input$delay.bs,window=input$window.bs,
+	    smooth=input$smooth.bs,show.ifr=input$show.ifr)
+	})
 }
 
 shinyApp(ui = ui, server = server)
