@@ -6,6 +6,7 @@ age.deaths<-function(
 	cumulative=TRUE,
 	corrected=FALSE,data=list(),
 	date.range=list(),return=NULL,...){
+	plot<-plot[1]
 	if(plot==FALSE) PLOT<-FALSE
 	else PLOT<-TRUE
 	if(length(age.group)>0){
@@ -18,7 +19,7 @@ age.deaths<-function(
 		plot<-plot[1]
 		ss<-state
 		if(state=="New York (excluding NYC)") state<-"New York"
-		if(!is.null(data$Counts)) Counts<-data$Counts
+		if(!is.null(data$age.Counts)) Counts<-data$age.Counts
 		else Counts<-read.csv("https://data.cdc.gov/api/views/y5bj-9g5w/rows.csv?accessType=DOWNLOAD")
 		if(!is.null(data$States)) States<-data$States
 		else States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)

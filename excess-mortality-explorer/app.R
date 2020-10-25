@@ -1,5 +1,6 @@
 library(shiny)
 library(shinyWidgets)
+library(phytools)
 source("state.deaths.R")
 source("age.deaths.R")
 source("case.estimator.R")
@@ -8,6 +9,8 @@ Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_S
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
 age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
+
+data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases)
 
 ui<-fluidPage(
   setBackgroundColor(
@@ -52,6 +55,9 @@ ui<-fluidPage(
 	                 checkboxInput(inputId="smooth",
 	                               label="use smoothing for estimation",
 	                               value=TRUE),
+	                 checkboxInput(inputId="percent",
+	                               label="show as percent of total population",
+	                               value=FALSE),
 	                 checkboxInput(inputId="cumulative.cases",
 	                               label="show cumulative cases",
 	                               value=FALSE),
@@ -69,6 +75,7 @@ ui<-fluidPage(
 	                 ".",
 	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
+	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
 	                 "All data files & code are available",a("here",
 	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
@@ -196,8 +203,7 @@ server <- function(input, output) {
 		state.deaths(state=input$state,plot=input$plot,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			type=if(input$type=="step") "s" else "l",
-			data=list(Counts=Counts,Provis=Provis,
-			States=States),corrected=input$corrected,
+			data=data,corrected=input$corrected,
 			date.range=list(start.date=input$start.end[1],
 			end.date=input$start.end[2]))
 	})
@@ -208,7 +214,7 @@ server <- function(input, output) {
 			plot=input$plot.age,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			age.group=input$age.group,
-			data=list(Counts=age.Counts,States=States),
+			data=data,
 			corrected=input$corrected.age,
 			cumulative=input$cumulative,
 			date.range=list(
@@ -220,10 +226,12 @@ server <- function(input, output) {
 		par(lend=1)
 		case.estimator(state=input$state.cases,
 			las=1,cex.axis=0.8,cex.lab=0.9,
-			data=list(Cases=Cases),
+			data=data,
 			cumulative=input$cumulative.cases,
 			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
-			delay=input$delay,window=input$window,smooth=input$smooth)
+			delay=input$delay,window=input$window,
+			smooth=input$smooth,
+			percent=input$percent)
 		})
 }
 
