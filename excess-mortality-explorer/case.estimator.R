@@ -18,6 +18,7 @@ case.estimator<-function(state="Massachusetts",
 	span=c(0.2,0.3),
 	percent=FALSE,
 	plot=TRUE,
+	bg="transparent",
 	...){
 	if(smooth) if(length(span)==1) span<-c(span,0.3)
 	cols<-make.transparent(c("darkgreen",palette()[c(4,2)]),
@@ -39,7 +40,7 @@ case.estimator<-function(state="Massachusetts",
 	mm<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
 		"Sep","Oct","Nov","Dec","Jan (2021)")
 	if(plot){
-		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,3.1),bg="transparent")
+		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,3.1),bg=bg)
 		plot(NA,xlim=c(1,366),ylim=100*c(0,0.02),bty="n",
 			ylab="",xlab="",axes=FALSE)
 		title(ylab="assumed IFR (%)",line=4)
@@ -287,7 +288,9 @@ case.estimator<-function(state="Massachusetts",
 	invisible(estCases)
 }
 
-cases.by.state<-function(states=NULL,stacked=TRUE,
+cases.by.state<-function(states=NULL,
+	cumulative=FALSE,
+	stacked=TRUE,
 	data=list(),
 	delay=20,
 	ifr=0.005,
@@ -295,6 +298,8 @@ cases.by.state<-function(states=NULL,stacked=TRUE,
 	smooth=TRUE,
 	span=c(0.2,0.3),
 	show.ifr=TRUE,
+	bg="transparent",
+	xlim=c(60,366-31),
 	...){
 	if(length(ifr)==1) ifr<-rep(ifr,366)
 	else if(length(ifr)>1){
@@ -329,6 +334,7 @@ cases.by.state<-function(states=NULL,stacked=TRUE,
 	if(!is.null(data$Centers)) Centers<-data$Centers
 	else Centers<-read.csv("Centers.csv")
 	args<-list(data=data,
+		cumulative=cumulative,
 		delay=delay,
 		ifr=ifr,
 		window=window,
@@ -377,8 +383,9 @@ cases.by.state<-function(states=NULL,stacked=TRUE,
 	colors<-c(colors,setNames(rep("black",2),c("Alaska","Hawaii")))
 	if(stacked){
 		cumCases<-t(apply(Cases[,ii],1,cumsum))
-		par(mar=c(5.1,5.1,3.1,3.1),bg="transparent")
-		plot(NA,xlim=c(1,366),ylim=c(0,1.1*max(cumCases,na.rm=TRUE)),
+		par(mar=c(5.1,5.1,2.1,3.1),bg=bg)
+		yex<-if(cumulative) 1.05 else 1.2
+		plot(NA,xlim=xlim,ylim=c(0,yex*max(cumCases,na.rm=TRUE)),
 			bty="n",xlab="",
 			ylab="",axes=FALSE)
 		tt<-1:nrow(cumCases)
@@ -393,15 +400,18 @@ cases.by.state<-function(states=NULL,stacked=TRUE,
 					border=FALSE,col=colors[colnames(cumCases)[i]])
 			}
 		}
-		title(ylab="cases (observed or estimated)",line=4)
 		Args<-list(...)
 		Args$side<-2
 		Args$labels<-FALSE
 		h<-do.call(axis,Args)
 		Args$at<-h
-		Args$labels<-paste(h/1000,"k",sep="")
+		Args$labels<-if(cumulative) paste(h/1000000,"M",sep="") else
+			paste(h/1000,"k",sep="")
 		do.call(axis,Args)
 		abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
+		title(ylab=if(cumulative) "estimated cumulative infections" else
+			"estimated new infections / day",line=4,
+			cex.lab=if(is.null(Args$cex.lab)) 1 else Args$cex.lab)
 		Args$side<-1
 		Args$at<-ms
 		Args$labels<-mm
@@ -418,12 +428,13 @@ cases.by.state<-function(states=NULL,stacked=TRUE,
 				box.col="transparent")
 		}
 		aspect<-par()$din[2]/par()$din[1]
-		par(usr=c(-240,-63,55-110*aspect,55))
+		if(cumulative) par(usr=c(-135,42,55-110*aspect,55)) else
+			par(usr=c(-240,-63,55-110*aspect,55))
 		for(i in 1:(length(colors)-2))
 			map("state",region=names(colors)[i],fill=TRUE,add=TRUE,
 				col=colors[i],border="white")
 	} else {
-		plot(NA,xlim=c(1,366),ylim=c(0,1.05*max(Casecols,na.rm=TRUE)),
+		plot(NA,xlim=xlim,ylim=c(0,1.05*max(Casecols,na.rm=TRUE)),
 			bty="n",xlab="",
 			ylab="",axes=FALSE)
 		nulo<-apply(Cases,2,lines)

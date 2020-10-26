@@ -43,6 +43,9 @@ ui<-fluidPage(
 	                 checkboxInput(inputId="smooth.bs",
 	                               label="use smoothing for estimation",
 	                               value=TRUE),
+	                 checkboxInput(inputId="cumulative.bs",
+	                               label="show cumulative cases",
+	                               value=FALSE),
 	                 checkboxInput(inputId="show.ifr",
 	                               label="show assumed IFR (%)",
 	                               value=FALSE),
@@ -287,7 +290,8 @@ server <- function(input, output, data=Data) {
 	    data=data,
 	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    delay=input$delay.bs,window=input$window.bs,
-	    smooth=input$smooth.bs,show.ifr=input$show.ifr)
+	    smooth=input$smooth.bs,show.ifr=input$show.ifr,
+	    cumulative=input$cumulative.bs)
 	})
 }
 
