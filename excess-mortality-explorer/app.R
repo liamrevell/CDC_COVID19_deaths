@@ -10,8 +10,7 @@ Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_S
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
 age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
-## Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
-Centers<-read.csv("Centers.csv")
+Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
 
 Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers)
 
@@ -36,13 +35,10 @@ ui<-fluidPage(
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="ifr5.bs",label="IFR Jan. 1, 2021 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="delay.bs",label="Lag-time from infection to death (for estimated cases):",
+	                 sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.bs",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
-	                 checkboxInput(inputId="smooth.bs",
-	                               label="use smoothing for estimation",
-	                               value=TRUE),
 	                 checkboxInput(inputId="cumulative.bs",
 	                               label="show cumulative cases",
 	                               value=FALSE),
@@ -98,7 +94,7 @@ ui<-fluidPage(
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="ifr5",label="IFR Jan. 1, 2021 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="delay",label="Lag-time from infection to death (for estimated cases):",
+	                 sliderInput(inputId="delay",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
@@ -290,7 +286,7 @@ server <- function(input, output, data=Data) {
 	    data=data,
 	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    delay=input$delay.bs,window=input$window.bs,
-	    smooth=input$smooth.bs,show.ifr=input$show.ifr,
+	    smooth=TRUE,show.ifr=input$show.ifr,
 	    cumulative=input$cumulative.bs)
 	})
 }

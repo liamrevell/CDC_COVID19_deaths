@@ -19,6 +19,7 @@ case.estimator<-function(state="Massachusetts",
 	percent=FALSE,
 	plot=TRUE,
 	bg="transparent",
+	xlim=c(45,366-45),
 	...){
 	if(smooth) if(length(span)==1) span<-c(span,0.3)
 	cols<-make.transparent(c("darkgreen",palette()[c(4,2)]),
@@ -41,7 +42,7 @@ case.estimator<-function(state="Massachusetts",
 		"Sep","Oct","Nov","Dec","Jan (2021)")
 	if(plot){
 		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,3.1),bg=bg)
-		plot(NA,xlim=c(1,366),ylim=100*c(0,0.02),bty="n",
+		plot(NA,xlim=xlim,ylim=100*c(0,0.02),bty="n",
 			ylab="",xlab="",axes=FALSE)
 		title(ylab="assumed IFR (%)",line=4)
 		Args<-list(...)
@@ -135,19 +136,33 @@ case.estimator<-function(state="Massachusetts",
 			cr[cr==Inf]<-0
 			cr[cr==-Inf]<-0
 			if(window<7) cr<-moving.average(cr,7)
-			cr[cr>10*mean(cr[100:length(cr)])]<-mean(cr)
+			cr[cr>1]<-1
 			cr[cr<0]<-0
 			fm<-try(nls(cr~a/(1+exp(-b*(tt-c))),
 				start=list(a=0.3,b=0.05,c=100),
-				control=list(maxiter=5000)))
-			while(attr(fm,"class")=="try-error"){
+				control=list(maxiter=1000)))
+			ntries<-0
+			while(attr(fm,"class")=="try-error"&&ntries<10){
 				ii<-sort(sample(1:T,100))
 				fm<-try(nls(cr[ii]~a/(1+exp(-b*(tt[ii]-c))),
 					start=list(a=0.3,b=0.05,c=100),
-					control=list(maxiter=5000)))
+					control=list(maxiter=1000)))
+				ntries<-ntries+1
+			}
+			if(attr(fm,"class")=="try-error"){
+				tt<-(T-99):T
+				cr<-rep(mean(cr[(T-99):T]),100)
+				fm<-lm(cr~tt)
 			}
 			tt<-1:(length(obsCases)-length(estCases))+length(estCases)
 			CR<-predict(fm,newdata=data.frame(tt=tt))
+			if(length(obsCases[tt])!=length(CR)){
+				tt<-(T-99):T
+				cr<-rep(mean(cr[(T-99):T]),100)
+				fm<-lm(cr~tt)
+				tt<-1:(length(obsCases)-length(estCases))+length(estCases)
+				CR<-predict(fm,newdata=data.frame(tt=tt))
+			}
 			estCases<-c(estCases,obsCases[tt]/CR)
 			tt<-1:length(estCases)
 			fit<-loess(estCases~tt,span=span[1])
@@ -166,7 +181,7 @@ case.estimator<-function(state="Massachusetts",
 			obsCases<-obsCases/population*100
 		}
 		if(plot){
-			plot(NA,xlim=c(1,366),ylim=c(0,1.05*max(estCases)),bty="n",
+			plot(NA,xlim=xlim,ylim=c(0,1.05*max(estCases)),bty="n",
 				xlab="",
 				ylab="",axes=FALSE)
 			title(ylab=if(percent) "cases (observed or estimated) %" else
@@ -221,15 +236,29 @@ case.estimator<-function(state="Massachusetts",
 			object<-data.frame(tt,cr)
 			fm<-try(nls(cr~a/(1+exp(-b*(tt-c))),
 				start=list(a=0.3,b=0.05,c=100),
-				control=list(maxiter=5000),data=object))
-			while(attr(fm,"class")=="try-error"){
+				control=list(maxiter=100),data=object))
+			ntries<-0
+			while(attr(fm,"class")=="try-error"&&ntries<10){
 				ii<-sort(sample(1:T,100))
 				fm<-try(nls(cr[ii]~a/(1+exp(-b*(tt[ii]-c))),
 					start=list(a=0.3,b=0.05,c=100),
-					control=list(maxiter=5000),data=object))
+					control=list(maxiter=1000)))
+				ntries<-ntries+1
+			}
+			if(attr(fm,"class")=="try-error"){
+				tt<-(T-99):T
+				cr<-rep(mean(cr[(T-99):T]),100)
+				fm<-lm(cr~tt)
 			}
 			tt<-1:(length(obsCases)-length(estCases))+length(estCases)
 			CR<-predict(fm,newdata=data.frame(tt=tt))
+			if(length(obsCases[tt])!=length(CR)){
+				tt<-(T-99):T
+				cr<-rep(mean(cr[(T-99):T]),100)
+				fm<-lm(cr~tt)
+				tt<-1:(length(obsCases)-length(estCases))+length(estCases)
+				CR<-predict(fm,newdata=data.frame(tt=tt))
+			}
 			estCases<-c(rep(0,21),Cases$tot_death)
 			estCases<-estCases[(delay+1):length(estCases)]
 			estCases<-estCases/ifr[1:length(estCases)]
@@ -251,7 +280,7 @@ case.estimator<-function(state="Massachusetts",
 			obsCases<-obsCases/population*100
 		}
 		if(plot){
-			plot(NA,xlim=c(1,366),ylim=c(0,1.05*max(estCases)),bty="n",
+			plot(NA,xlim=xlim,ylim=c(0,1.05*max(estCases)),bty="n",
 				ylab="",
 				xlab="",axes=FALSE)
 			title(ylab=if(percent) "cases (observed or estimated) %" else
@@ -299,7 +328,7 @@ cases.by.state<-function(states=NULL,
 	span=c(0.2,0.3),
 	show.ifr=TRUE,
 	bg="transparent",
-	xlim=c(60,366-31),
+	xlim=c(45,366-45),
 	...){
 	if(length(ifr)==1) ifr<-rep(ifr,366)
 	else if(length(ifr)>1){
