@@ -5,6 +5,7 @@ library(maps)
 source("state.deaths.R")
 source("age.deaths.R")
 source("case.estimator.R")
+source("case.range.estimator.R")
 Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
 Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
@@ -21,7 +22,7 @@ ui<-fluidPage(
     direction = "bottom"
 	),
 	tabsetPanel(
-	  tabPanel("COVID-19 cases by state", fluid = TRUE,
+	  tabPanel("COVID-19 infections", fluid = TRUE,
 	           verticalLayout(
 	             sidebarLayout(
 	               sidebarPanel(
@@ -48,7 +49,7 @@ ui<-fluidPage(
 	                 width=3
 	               ),
 	               mainPanel(
-	                 plotOutput("plot.allstates",width="100%",height="800px"),
+	                 plotOutput("plot.allstates",width="auto",height="800px"),
 	                 width=9
 	               )
 	             ),
@@ -65,7 +66,64 @@ ui<-fluidPage(
 	               width=12)
 	           )
 	  ),
-	  tabPanel("COVID-19 case estimator", fluid = TRUE,
+	  tabPanel("Plausible range", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 selectInput(inputId="state.range",label="State or jurisdiction",
+	                             choices=c("United States","Alabama","Alaska","Arizona",
+	                                       "Arkansas","California","Colorado","Connecticut",
+	                                       "Delaware","District of Columbia","Florida",
+	                                       "Georgia","Hawaii","Idaho","Illinois",
+	                                       "Indiana","Iowa","Kansas","Kentucky","Louisiana",
+	                                       "Maine","Maryland","Massachusetts","Michigan","Minnesota",
+	                                       "Mississippi","Missouri","Montana","Nebraska","Nevada",
+	                                       "New Hampshire","New Jersey","New Mexico","New York",
+	                                       "New York City","North Carolina","North Dakota",
+	                                       "Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+	                                       "Rhode Island","South Carolina","South Dakota","Tennessee",
+	                                       "Texas","Utah","Vermont","Virginia",
+	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
+	                             selected="Massachusetts"),
+	                 sliderInput(inputId="ifr1.range",label="IFR range Jan. 1, 2020 (%):",
+	                             value=c(0.5,0.8),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr2.range",label="IFR range Apr. 1, 2020 (%):",
+	                             value=c(0.4,0.7),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr3.range",label="IFR range Jul. 1, 2020 (%):",
+	                             value=c(0.3,0.6),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr4.range",label="IFR range Oct. 1, 2020 (%):",
+	                             value=c(0.25,0.55),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr5.range",label="IFR range Jan. 1, 2021 (%):",
+	                             value=c(0.25,0.55),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay.range",label="Average lag-time from infection to death:",
+	                             value=21,min=0,max=30,ticks=FALSE),
+	                 sliderInput(inputId="window.range",label="Window for moving averages:",
+	                             value=14,min=1,max=21,ticks=FALSE),
+	                 checkboxInput(inputId="cumulative.range",
+	                               label="show cumulative cases",
+	                               value=FALSE),
+	                 width=3
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.range",width="auto",height="800px"),
+	                 width=9
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	                 a("COVID-19 Cases and Deaths by State over Time",
+	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
+	                 ".",
+	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
+	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
+	                 "All data files & code are available",a("here",
+	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),
+	  tabPanel("Infection estimator", fluid = TRUE,
 	           verticalLayout(
 	             sidebarLayout(
 	               sidebarPanel(
@@ -110,7 +168,7 @@ ui<-fluidPage(
 	                 width=3
 	               ),
 	               mainPanel(
-	                 plotOutput("plot.cases",width="100%",height="800px"),
+	                 plotOutput("plot.cases",width="auto",height="800px"),
 	                 width=9
 	               )
 	             ),
@@ -168,7 +226,7 @@ ui<-fluidPage(
 				  width=3
 				),
 				mainPanel(
-				  plotOutput("plot.age",width="100%",height="800px"),
+				  plotOutput("plot.age",width="auto",height="800px"),
 				  width=9
 				)
 			),
@@ -183,7 +241,7 @@ ui<-fluidPage(
 			  width=12)
 		  )
 		),
-		tabPanel("Excess mortality by state", fluid = TRUE,
+		tabPanel("By state", fluid = TRUE,
 		         verticalLayout(
 		         sidebarLayout(
 		           sidebarPanel(
@@ -217,7 +275,7 @@ ui<-fluidPage(
                 width=3  
 		           ),
 		           mainPanel(
-		             plotOutput("plot.state",width="100%",height="800px"),
+		             plotOutput("plot.state",width="auto",height="800px"),
 		             width=9
 		           )
 		         ),
@@ -288,6 +346,19 @@ server <- function(input, output, data=Data) {
 	    delay=input$delay.bs,window=input$window.bs,
 	    smooth=TRUE,show.ifr=input$show.ifr,
 	    cumulative=input$cumulative.bs)
+	})
+	output$plot.range<-renderPlot({
+	  options(scipen=10)
+	  par(lend=1)
+	  case.range.estimator(state=input$state.range,
+	    las=1,cex.axis=0.8,cex.lab=0.9,
+	    data=data,
+	    ifr.low=c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
+	    input$ifr4.range[1],input$ifr5.range[1])/100,
+	    ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
+	    input$ifr4.range[2],input$ifr5.range[2])/100,
+	    delay=input$delay.range,window=input$window.range,
+      cumulative=input$cumulative.range)
 	})
 }
 

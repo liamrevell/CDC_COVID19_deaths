@@ -470,3 +470,6 @@ cases.by.state<-function(states=NULL,
 	}
 	invisible(Cases)
 }
+
+
+
