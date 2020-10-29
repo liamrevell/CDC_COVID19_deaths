@@ -123,7 +123,7 @@ case.range.estimator<-function(state="Massachusetts",
 	Args$labels<-FALSE
 	h<-do.call(axis,Args)
 	Args$at<-h
-	Args$labels<-if(max(newDeaths)>3000) paste(h/1000,"k",sep="") else h
+	Args$labels<-if(max(newDeaths)>1000) paste(h/1000,"k",sep="") else h
 	do.call(axis,Args)
 	legend("topright",c("assumed IFR (%)",
 		"daily COVID-19 deaths"),pch=c(NA,15),
@@ -161,8 +161,8 @@ case.range.estimator<-function(state="Massachusetts",
 	Args$labels<-FALSE
 	h<-do.call(axis,Args)
 	Args$at<-h
-	Args$labels<-if(max(e.high)>3000000) paste(h/1000000,"M",sep="") else
-		if(max(e.high)>3000) paste(h/1000,"k",sep="") else h
+	Args$labels<-if(max(e.high)>1000000) paste(h/1000000,"M",sep="") else
+		if(max(e.high)>1000) paste(h/1000,"k",sep="") else h
 	do.call(axis,Args)
 	abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
 	Args$side<-1
@@ -176,7 +176,7 @@ case.range.estimator<-function(state="Massachusetts",
 	if(cumulative) mtext(paste("b)",state,"estimated cumulative infections"),
 		adj=0,line=1,cex=1.2) else mtext(paste("b)",state,
 		"estimated daily infections"),adj=0,line=1,cex=1.2)
-	legend(x=if(cumulative) "topleft" else "topright",
+	legend(x="topright",
 		c("mid-IFR infections",
 		"range"),
 		pch=c(NA,15),cex=0.9,col=c(cols[1],

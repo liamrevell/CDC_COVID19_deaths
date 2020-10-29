@@ -41,7 +41,7 @@ ui<-fluidPage(
 	                 sliderInput(inputId="window.bs",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
 	                 checkboxInput(inputId="cumulative.bs",
-	                               label="show cumulative cases",
+	                               label="show cumulative infections",
 	                               value=FALSE),
 	                 checkboxInput(inputId="show.ifr",
 	                               label="show assumed IFR (%)",
@@ -100,7 +100,7 @@ ui<-fluidPage(
 	                 sliderInput(inputId="window.range",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
 	                 checkboxInput(inputId="cumulative.range",
-	                               label="show cumulative cases",
+	                               label="show cumulative infections",
 	                               value=FALSE),
 	                 width=3
 	               ),
@@ -115,10 +115,9 @@ ui<-fluidPage(
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
 	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
-	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
 	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
 	                 "All data files & code are available",a("here",
-	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                                                         href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -163,7 +162,7 @@ ui<-fluidPage(
 	                               label="show as percent of total population",
 	                               value=FALSE),
 	                 checkboxInput(inputId="cumulative.cases",
-	                               label="show cumulative cases",
+	                               label="show cumulative infections",
 	                               value=FALSE),
 	                 width=3
 	               ),
