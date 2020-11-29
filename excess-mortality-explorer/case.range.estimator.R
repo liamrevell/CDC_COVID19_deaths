@@ -10,7 +10,7 @@ case.range.estimator<-function(state="Massachusetts",
 	percent=FALSE,
 	plot=TRUE,
 	bg="transparent",
-	xlim=c(45,366-45),
+	xlim=c(45,366-15),
 	...){
 	if(length(ifr.low)>1&&length(ifr.low)==length(ifr.high)){
 		IFR<-rbind(ifr.low,ifr.high)
@@ -92,16 +92,26 @@ case.range.estimator<-function(state="Massachusetts",
 		"Washington","West Virginia","Wisconsin","Wyoming"))
 	if(!is.null(data$Cases)) Cases<-data$Cases
 	else Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
+	Cases<-fixCases(Cases)
 	if(!(state%in%c("New York","United States"))) Cases<-Cases[Cases$state==state.codes[state],]
 	else if(state=="United States"){
-		Temp<-data.frame(
-			new_death=rowSums(sapply(state.codes[2:length(state.codes)],
+		Temp<-list(
+			new_death=lapply(state.codes[2:length(state.codes)],
 				function(x,Data) Data[Data$state==x,"new_death"],
-				Data=Cases)))
+				Data=Cases))
+		ll<-sapply(Temp$new_death,length)
+		max.ll<-max(ll)
+		if(any(ll!=max.ll)){
+			ww<-which(ll!=max.ll)
+			for(i in 1:length(ww))
+				Temp$new_death[[ww[i]]]<-c(Temp$new_death[[ww[i]]],
+					rep(0,max.ll-length(Temp$new_death[[ww[i]]])))
+		}
+		Temp<-data.frame(
+			new_death=rowSums(as.data.frame(Temp$new_death)))
 		Cases<-Temp
 	} else if(state=="New York"){
 		ii<-grep(state,names(state.codes))
-		print(ii)
 		Temp<-data.frame(
 			new_death=rowSums(sapply(state.codes[ii],
 				function(x,Data) Data[Data$state==x,"new_death"],
@@ -132,25 +142,38 @@ case.range.estimator<-function(state="Massachusetts",
 		box.col="transparent")
 	if(state!="New York"){
 		e.high<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE)
+			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=percent)
 		e.mid<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE)
+			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=percent)
 		e.low<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE)
+			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=percent)
 	} else {
 		states<-c("New York (excluding NYC)","New York City")
-		e.high<-case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE)+
+		if(percent){ 
+			States<-state.deaths(plot="States")
+			pp<-sum(States[c("New York","New York City"),"2020"])/100
+		} else pp<-1
+		e.high<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE)+
 			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE)
-		e.mid<-case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE)+
+			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE))/pp
+		e.mid<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE)+
 			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE)
-		e.low<-case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE)+
+			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE))/pp
+		e.low<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE)+
 			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
-			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE)
+			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
+			percent=FALSE))/pp
 	}
 	plot(NA,xlim=xlim,ylim=c(0,1.2*max(e.high)),
 		bty="n",xlab="",
@@ -161,8 +184,11 @@ case.range.estimator<-function(state="Massachusetts",
 	Args$labels<-FALSE
 	h<-do.call(axis,Args)
 	Args$at<-h
-	Args$labels<-if(max(e.high)>1000000) paste(h/1000000,"M",sep="") else
-		if(max(e.high)>1000) paste(h/1000,"k",sep="") else h
+	if(percent)
+		Args$labels<-paste(h,"%",sep="")
+	else
+		Args$labels<-if(max(e.high)>1000000) paste(h/1000000,"M",sep="") else
+			if(max(e.high)>1000) paste(h/1000,"k",sep="") else h
 	do.call(axis,Args)
 	abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
 	Args$side<-1

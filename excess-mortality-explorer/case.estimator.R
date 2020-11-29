@@ -19,8 +19,13 @@ case.estimator<-function(state="Massachusetts",
 	percent=FALSE,
 	plot=TRUE,
 	bg="transparent",
-	xlim=c(45,366-45),
+	xlim=c(45,366-15),
+	show.points=FALSE,
 	...){
+	if(plot=="infection.ratio"){ 
+		show.cr<-TRUE
+		plot<-TRUE
+	} else show.cr<-FALSE
 	if(smooth) if(length(span)==1) span<-c(span,0.3)
 	cols<-make.transparent(c("darkgreen",palette()[c(4,2)]),
 		0.8)
@@ -78,6 +83,7 @@ case.estimator<-function(state="Massachusetts",
 		"Washington","West Virginia","Wisconsin","Wyoming"))
 	if(!is.null(data$Cases)) Cases<-data$Cases
 	else Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
+	Cases<-fixCases(Cases)
 	if(state!="United States") Cases<-Cases[Cases$state==state.codes[state],]
 	else {
 		Temp<-data.frame(
@@ -93,7 +99,7 @@ case.estimator<-function(state="Massachusetts",
 			tot_cases=rowSums(sapply(state.codes[2:length(state.codes)],
 				function(x,Data) Data[Data$state==x,"tot_cases"],
 				Data=Cases)))
-		Cases<-Temp
+		Cases<-Temp	
 	}
 	if(percent){ 
 		SS<-state.deaths(plot="States",data=data)
@@ -154,6 +160,22 @@ case.estimator<-function(state="Massachusetts",
 				cr<-rep(mean(cr[(T-99):T]),100)
 				fm<-lm(cr~tt)
 			}
+			if(show.cr){
+				plot(tt,cr,xlim=xlim,bty="n",pch=21,bg="grey",
+					ylab="",xlab="",axes=FALSE)
+				lines(tt,predict(fm),lwd=2,col=cols[2])
+				Args<-list(...)
+				Args$side<-2
+				h<-do.call(axis,Args)
+				Args$side<-1
+				Args$at<-ms
+				Args$labels<-mm
+				v<-do.call(axis,Args)
+				title(ylab="ratio",line=4)
+				plot<-FALSE
+				mtext(paste("b)",state,"daily estimated confirmed cases/infections"),
+					adj=0,line=1,cex=1.2)
+			}
 			tt<-1:(length(obsCases)-length(estCases))+length(estCases)
 			CR<-predict(fm,newdata=data.frame(tt=tt))
 			if(length(obsCases[tt])!=length(CR)){
@@ -163,6 +185,7 @@ case.estimator<-function(state="Massachusetts",
 				tt<-1:(length(obsCases)-length(estCases))+length(estCases)
 				CR<-predict(fm,newdata=data.frame(tt=tt))
 			}
+			if(show.cr) lines(tt,CR,lwd=2,col=cols[2],lty="dotted")
 			estCases<-c(estCases,obsCases[tt]/CR)
 			tt<-1:length(estCases)
 			fit<-loess(estCases~tt,span=span[1])
@@ -184,11 +207,19 @@ case.estimator<-function(state="Massachusetts",
 			plot(NA,xlim=xlim,ylim=c(0,1.05*max(estCases)),bty="n",
 				xlab="",
 				ylab="",axes=FALSE)
-			title(ylab=if(percent) "cases (observed or estimated) %" else
-				"cases (observed or estimated)",line=4)
+			title(ylab=if(percent) "infections (observed or estimated) %" else
+				"infections (observed or estimated)",line=4)
 			Args<-list(...)
 			Args$side<-2
+			Args$labels<-FALSE
 			h<-do.call(axis,Args)
+			Args$at<-h
+			if(percent)
+				Args$labels<-paste(h,"%",sep="")
+			else
+				Args$labels<-if(max(estCases)>1000000) paste(h/1000000,"M",sep="") else
+					if(max(estCases)>1000) paste(h/1000,"k",sep="") else h
+			do.call(axis,Args)
 			abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
 			Args$side<-1
 			Args$at<-ms
@@ -206,10 +237,20 @@ case.estimator<-function(state="Massachusetts",
 			polygon(c(1:length(newDeaths),length(newDeaths),1),
 				c(newDeaths,0,0),
 				border=FALSE,col=cols[3])
-			mtext(paste("b)",state,"daily observed or estimated cases"),
+			if(show.points){
+				ee<-c(rep(0,21),Cases$new_death)
+				ee<-ee[(delay+1):length(ee)]
+				ee<-ee/ifr[1:length(ee)]
+				if(smooth) ee<-c(ee,
+					Cases$new_case[1:length(CR)+length(Cases$new_case)-
+					length(CR)]/CR)
+				if(percent) ee<-ee/population*100
+				points(ee,pch=16,col=make.transparent("grey",0.8),cex=0.7)
+			}
+			mtext(paste("b)",state,"daily observed or estimated infections"),
 				adj=0,line=1,cex=1.2)
-			legend(x="topright",c("observed cases",
-				"estimated cases","deaths"),pch=15,cex=0.9,
+			legend(x="topright",c("observed",
+				"estimated","deaths"),pch=15,cex=0.9,
 				col=c(cols[2],cols[1],cols[3]),
 				pt.cex=1.5,bty="n",xpd=TRUE,
 				xjust=0.5,yjust=1)
@@ -250,13 +291,13 @@ case.estimator<-function(state="Massachusetts",
 				cr<-rep(mean(cr[(T-99):T]),100)
 				fm<-lm(cr~tt)
 			}
-			tt<-1:(length(obsCases)-length(estCases))+length(estCases)
+			tt<-1:(length(ObsCases)-length(estCases))+length(estCases)
 			CR<-predict(fm,newdata=data.frame(tt=tt))
-			if(length(obsCases[tt])!=length(CR)){
+			if(length(ObsCases[tt])!=length(CR)){
 				tt<-(T-99):T
 				cr<-rep(mean(cr[(T-99):T]),100)
 				fm<-lm(cr~tt)
-				tt<-1:(length(obsCases)-length(estCases))+length(estCases)
+				tt<-1:(length(ObsCases)-length(estCases))+length(estCases)
 				CR<-predict(fm,newdata=data.frame(tt=tt))
 			}
 			estCases<-c(rep(0,21),Cases$tot_death)
@@ -264,9 +305,8 @@ case.estimator<-function(state="Massachusetts",
 			estCases<-estCases/ifr[1:length(estCases)]
 			estCases<-c(estCases,estCases[length(estCases)]+cumsum(ObsCases[tt]/CR))
 			tt<-1:length(estCases)
-			estCases<-c(rep(0,21),fitted(loess(estCases~tt,span=span[1])))
+			estCases<-fitted(loess(estCases~tt,span=span[1]))
 			estCases[estCases<0]<-0
-			estCases<-estCases[(delay+1):length(estCases)]
 			if(delay<=21) estCases[1:(21-delay)]<-0
 		} else {
 			estCases<-c(rep(0,21),Cases$tot_death)
@@ -283,11 +323,19 @@ case.estimator<-function(state="Massachusetts",
 			plot(NA,xlim=xlim,ylim=c(0,1.05*max(estCases)),bty="n",
 				ylab="",
 				xlab="",axes=FALSE)
-			title(ylab=if(percent) "cases (observed or estimated) %" else
-				"cases (observed or estimated)",line=4)
+			title(ylab=if(percent) "infections (observed or estimated) %" else
+				"infections (observed or estimated)",line=4)
 			Args<-list(...)
 			Args$side<-2
+			Args$labels<-FALSE
 			h<-do.call(axis,Args)
+			Args$at<-h
+			if(percent)
+				Args$labels<-paste(h,"%",sep="")
+			else
+				Args$labels<-if(max(estCases)>1000000) paste(h/1000000,"M",sep="") else
+					if(max(estCases)>1000) paste(h/1000,"k",sep="") else h
+			do.call(axis,Args)
 			abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
 			Args$side<-1
 			Args$at<-ms
@@ -305,10 +353,21 @@ case.estimator<-function(state="Massachusetts",
 			polygon(c(1:length(newDeaths),length(newDeaths),1),
 				c(newDeaths,0,0),
 				border=FALSE,col=cols[3])
-			mtext(paste("b)",state,"cumulative observed or estimated cases"),
+			if(show.points){
+				ee<-c(rep(0,21),Cases$tot_death)
+				ee<-ee[(delay+1):length(ee)]
+				ee<-ee/ifr[1:length(ee)]
+				if(smooth) ee<-c(ee,
+					ee[length(ee)]+
+					cumsum(Cases$new_case[1:length(CR)+length(Cases$new_case)-
+					length(CR)]/CR))
+				if(percent) ee<-ee/population*100
+				points(ee,pch=16,col=make.transparent("grey",0.8),cex=0.7)
+			}
+			mtext(paste("b)",state,"cumulative observed or estimated infections"),
 				adj=0,line=1,cex=1.2)
-			legend(x="topright",c("observed cases",
-				"estimated cases","deaths"),pch=15,cex=0.9,
+			legend(x="topright",c("observed",
+				"estimated","deaths"),pch=15,cex=0.9,
 				col=c(cols[2],cols[1],cols[3]),
 				pt.cex=1.5,bty="n",xpd=TRUE,
 				xjust=0.5,yjust=1)
@@ -328,7 +387,7 @@ cases.by.state<-function(states=NULL,
 	span=c(0.2,0.3),
 	show.ifr=TRUE,
 	bg="transparent",
-	xlim=c(45,366-45),
+	xlim=c(45,366-15),
 	...){
 	if(length(ifr)==1) ifr<-rep(ifr,366)
 	else if(length(ifr)>1){
@@ -413,7 +472,7 @@ cases.by.state<-function(states=NULL,
 	if(stacked){
 		cumCases<-t(apply(Cases[,ii],1,cumsum))
 		par(mar=c(5.1,5.1,2.1,3.1),bg=bg)
-		yex<-if(cumulative) 1.05 else 1.2
+		yex<-if(cumulative) 1.05 else 1.3
 		plot(NA,xlim=xlim,ylim=c(0,yex*max(cumCases,na.rm=TRUE)),
 			bty="n",xlab="",
 			ylab="",axes=FALSE)
@@ -458,7 +517,8 @@ cases.by.state<-function(states=NULL,
 		}
 		aspect<-par()$din[2]/par()$din[1]
 		if(cumulative) par(usr=c(-135,42,55-110*aspect,55)) else
-			par(usr=c(-240,-63,55-110*aspect,55))
+			par(usr=c(-135,42,55-110*aspect,55))
+			## par(usr=c(-240,-63,55-110*aspect,55))
 		for(i in 1:(length(colors)-2))
 			map("state",region=names(colors)[i],fill=TRUE,add=TRUE,
 				col=colors[i],border="white")
@@ -471,5 +531,59 @@ cases.by.state<-function(states=NULL,
 	invisible(Cases)
 }
 
+fixCases<-function(Cases){
+	states<-setNames(c("AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI",
+		"ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS",
+		"MO","MT","NE","NV","NH","NJ","NM","NY","NYC","NC","ND","OH","OK",
+		"OR","PA","PR","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV",
+		"WI","WY"),c("AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI",
+		"ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS",
+		"MO","MT","NE","NV","NH","NJ","NM","NY","NYC","NC","ND","OH","OK",
+		"OR","PA","PR","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV",
+		"WI","WY"))
+	Temp<-list(
+		dates=lapply(states,
+			function(x,Data) Data[Data$state==x,"submission_date"],
+			Data=Cases),
+		new_death=lapply(states,
+			function(x,Data) Data[Data$state==x,"new_death"],
+			Data=Cases),
+		new_case=lapply(states,
+			function(x,Data) Data[Data$state==x,"new_case"],
+			Data=Cases),
+		tot_death=lapply(states,
+			function(x,Data) Data[Data$state==x,"tot_death"],
+			Data=Cases),
+		tot_cases=lapply(states,
+			function(x,Data) Data[Data$state==x,"tot_cases"],
+			Data=Cases))
+	ll<-sapply(Temp$new_death,length)
+	max.ll<-max(ll)
+	if(any(ll!=max.ll)){
+		ww<-which(ll!=max.ll)
+		dd<-Temp$dates[setdiff(names(Temp$dates),names(ww))][[1]]
+		for(i in 1:length(ww)){
+			nd<-setNames(Temp$new_death[[ww[i]]],Temp$dates[[ww[i]]])
+			Temp$new_death[[ww[i]]]<-setNames(rep(0,length(dd)),dd)
+			Temp$new_death[[ww[i]]][names(nd)]<-nd
+			names(Temp$new_death[[ww[i]]])<-NULL
+			nc<-setNames(Temp$new_case[[ww[i]]],Temp$dates[[ww[i]]])
+			Temp$new_case[[ww[i]]]<-setNames(rep(0,length(dd)),dd)
+			Temp$new_case[[ww[i]]][names(nc)]<-nc
+			names(Temp$new_case[[ww[i]]])<-NULL
+			Temp$tot_death[[ww[i]]]<-cumsum(Temp$new_death[[ww[i]]])
+			Temp$tot_cases[[ww[i]]]<-cumsum(Temp$new_case[[ww[i]]])
+			Temp$dates[[ww[i]]]<-dd
+		}
+	}
+	Cases<-data.frame(
+		submission_date=rep(dd,length(states)),
+		state=as.vector(sapply(states,function(x,n) rep(x,n),n=length(dd))),
+		tot_cases=as.vector(sapply(Temp$tot_cases,function(x) x)),
+		new_case=as.vector(sapply(Temp$new_case,function(x) x)),
+		tot_death=as.vector(sapply(Temp$tot_death,function(x) x)),
+		new_death=as.vector(sapply(Temp$new_death,function(x) x)))
+	Cases
+}
 
 

@@ -99,6 +99,9 @@ ui<-fluidPage(
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.range",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
+	                 checkboxInput(inputId="percent.range",
+	                               label="show as percent of total population",
+	                               value=FALSE),
 	                 checkboxInput(inputId="cumulative.range",
 	                               label="show cumulative infections",
 	                               value=FALSE),
@@ -163,6 +166,8 @@ ui<-fluidPage(
 	                               value=FALSE),
 	                 checkboxInput(inputId="cumulative.cases",
 	                               label="show cumulative infections",
+	                               value=FALSE),
+	                 checkboxInput(inputId="show.points",label="show points (used in smoothing)",
 	                               value=FALSE),
 	                 width=3
 	               ),
@@ -334,7 +339,8 @@ server <- function(input, output, data=Data) {
 			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
 			delay=input$delay,window=input$window,
 			smooth=input$smooth,
-			percent=input$percent)
+			percent=input$percent,
+			show.points=input$show.points)
 		})
 	output$plot.allstates<-renderPlot({
 	  options(scipen=10)
@@ -357,7 +363,7 @@ server <- function(input, output, data=Data) {
 	    ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
 	    input$ifr4.range[2],input$ifr5.range[2])/100,
 	    delay=input$delay.range,window=input$window.range,
-      cumulative=input$cumulative.range)
+      cumulative=input$cumulative.range,percent=input$percent.range)
 	})
 }
 
