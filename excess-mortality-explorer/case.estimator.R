@@ -388,6 +388,7 @@ cases.by.state<-function(states=NULL,
 	show.ifr=TRUE,
 	bg="transparent",
 	xlim=c(45,366-15),
+	show.as.percent=FALSE,
 	...){
 	if(length(ifr)==1) ifr<-rep(ifr,366)
 	else if(length(ifr)>1){
@@ -471,8 +472,13 @@ cases.by.state<-function(states=NULL,
 	colors<-c(colors,setNames(rep("black",2),c("Alaska","Hawaii")))
 	if(stacked){
 		cumCases<-t(apply(Cases[,ii],1,cumsum))
+		if(show.as.percent){
+			rs<-rowSums(Cases)
+			for(i in 1:nrow(cumCases)) 
+				cumCases[i,]<-if(rs[i]==0) cumCases[i,] else cumCases[i,]/rs[i]*100
+		}
 		par(mar=c(5.1,5.1,2.1,3.1),bg=bg)
-		yex<-if(cumulative) 1.05 else 1.3
+		yex<-if(show.as.percent) 1.2 else if(cumulative) 1.05 else 1.3
 		plot(NA,xlim=xlim,ylim=c(0,yex*max(cumCases,na.rm=TRUE)),
 			bty="n",xlab="",
 			ylab="",axes=FALSE)
@@ -491,15 +497,25 @@ cases.by.state<-function(states=NULL,
 		Args<-list(...)
 		Args$side<-2
 		Args$labels<-FALSE
+		if(show.as.percent) Args$at<-c(0,25,50,75,100)
 		h<-do.call(axis,Args)
 		Args$at<-h
-		Args$labels<-if(cumulative) paste(h/1000000,"M",sep="") else
-			paste(h/1000,"k",sep="")
+		if(show.as.percent){
+			Args$labels<-paste(h,"%",sep="")
+		} else {
+			Args$labels<-if(cumulative) paste(h/1000000,"M",sep="") else
+				paste(h/1000,"k",sep="")
+		}
 		do.call(axis,Args)
 		abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
-		title(ylab=if(cumulative) "estimated cumulative infections" else
-			"estimated new infections / day",line=4,
-			cex.lab=if(is.null(Args$cex.lab)) 1 else Args$cex.lab)
+		if(show.as.percent) 
+			title(ylab=if(cumulative) "estimated cumulative infections (as % of all infections)" else
+				"estimated new infections / day (as % of all infections)",line=4,
+				cex.lab=if(is.null(Args$cex.lab)) 1 else Args$cex.lab)
+		else 
+			title(ylab=if(cumulative) "estimated cumulative infections" else
+				"estimated new infections / day",line=4,
+				cex.lab=if(is.null(Args$cex.lab)) 1 else Args$cex.lab)
 		Args$side<-1
 		Args$at<-ms
 		Args$labels<-mm
@@ -516,7 +532,8 @@ cases.by.state<-function(states=NULL,
 				box.col="transparent")
 		}
 		aspect<-par()$din[2]/par()$din[1]
-		if(cumulative) par(usr=c(-135,42,55-110*aspect,55)) else
+		if(show.as.percent) par(usr=c(-125,52,55-110*aspect,55))
+		else if(cumulative) par(usr=c(-135,42,55-110*aspect,55)) else
 			par(usr=c(-135,42,55-110*aspect,55))
 			## par(usr=c(-240,-63,55-110*aspect,55))
 		for(i in 1:(length(colors)-2))

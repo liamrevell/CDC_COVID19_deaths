@@ -43,6 +43,9 @@ ui<-fluidPage(
 	                 checkboxInput(inputId="cumulative.bs",
 	                               label="show cumulative infections",
 	                               value=FALSE),
+	                 checkboxInput(inputId="show.as.percent",
+	                               label="show as % of all infections",
+	                               value=FALSE),
 	                 checkboxInput(inputId="show.ifr",
 	                               label="show assumed IFR (%)",
 	                               value=FALSE),
@@ -350,7 +353,7 @@ server <- function(input, output, data=Data) {
 	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    delay=input$delay.bs,window=input$window.bs,
 	    smooth=TRUE,show.ifr=input$show.ifr,
-	    cumulative=input$cumulative.bs)
+	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent)
 	})
 	output$plot.range<-renderPlot({
 	  options(scipen=10)
