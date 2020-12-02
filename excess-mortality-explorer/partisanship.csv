@@ -1,0 +1,51 @@
+State,PVI,Party of governor,Party in Senate,House balance
+Alabama,R+14,Republican,Both,"6R, 1D"
+Alaska,R+9,Republican,Republican,1R
+Arizona,R+5,Republican,Both,"5D, 4R"
+Arkansas,R+15,Republican,Republican,4R
+California,D+12,Democratic,Democratic,"45D, 8R"
+Colorado,D+1,Democratic,Both,"4D, 3R"
+Connecticut,D+6,Democratic,Democratic,5D
+Delaware,D+6,Democratic,Democratic,1D
+Florida,R+2,Republican,Republican,"14R, 13D"
+Georgia,R+5,Republican,Republican,"9R, 5D"
+Hawaii,D+18,Democratic,Democratic,2D
+Idaho,R+19,Republican,Republican,2R
+Illinois,D+7,Democratic,Democratic,"13D, 5R"
+Indiana,R+9,Republican,Republican,"7R, 2D"
+Iowa,R+3,Republican,Republican,"3D, 1R"
+Kansas,R+13,Democratic,Republican,"3R, 1D"
+Kentucky,R+15,Democratic,Republican,"5R, 1D"
+Louisiana,R+11,Democratic,Republican,"5R, 1D"
+Maine,D+3,Democratic,Both*,2D
+Maryland,D+12,Republican,Democratic,"7D, 1R"
+Massachusetts,D+12,Republican,Democratic,9D
+Michigan,D+1,Democratic,Democratic,"7D, 6R, 1L"
+Minnesota,D+1,Democratic,Democratic,"5D, 3R"
+Mississippi,R+9,Republican,Republican,"3R, 1D"
+Missouri,R+9,Republican,Republican,"6R, 2D"
+Montana,R+11,Democratic,Both,1R
+Nebraska,R+14,Republican,Republican,3R
+Nevada,D+1,Democratic,Democratic,"3D, 1R"
+New Hampshire,EVEN,Republican,Democratic,2D
+New Jersey,D+7,Democratic,Democratic,"10D, 2R"
+New Mexico,D+3,Democratic,Democratic,3D
+New York,D+12,Democratic,Democratic,"21D, 6R"
+North Carolina,R+3,Democratic,Republican,"10R, 3D"
+North Dakota,R+17,Republican,Republican,1R
+Ohio,R+3,Republican,Both,"12R, 4D"
+Oklahoma,R+20,Republican,Republican,"4R, 1D"
+Oregon,D+5,Democratic,Democratic,"4D, 1R"
+Pennsylvania,EVEN,Democratic,Both,"9D, 9R"
+Rhode Island,D+10,Democratic,Democratic,2D
+South Carolina,R+8,Republican,Republican,"5R, 2D"
+South Dakota,R+14,Republican,Republican,1R
+Tennessee,R+14,Republican,Republican,"7R, 2D"
+Texas,R+8,Republican,Republican,"23R, 13D"
+Utah,R+20,Republican,Republican,"3R, 1D"
+Vermont,D+15,Republican,Democratic*,1D
+Virginia,D+1,Democratic,Democratic,"7D, 4R"
+Washington,D+7,Democratic,Democratic,"7D, 3R"
+West Virginia,R+19,Republican,Both,3R
+Wisconsin,EVEN,Democratic,Both,"5R, 3D"
+Wyoming,R+25,Republican,Republican,1R
