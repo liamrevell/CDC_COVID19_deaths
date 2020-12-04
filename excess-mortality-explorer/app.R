@@ -40,6 +40,8 @@ ui<-fluidPage(
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.bs",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
+	                 sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
+	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="cumulative.bs",
 	                               label="show cumulative infections",
 	                               value=FALSE),
@@ -102,6 +104,8 @@ ui<-fluidPage(
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.range",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
+	                 sliderInput(inputId="span.range",label="Span (for LOESS smoothing):",
+	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="percent.range",
 	                               label="show as percent of total population",
 	                               value=FALSE),
@@ -161,6 +165,8 @@ ui<-fluidPage(
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window",label="Window for moving averages:",
 	                             value=14,min=1,max=21,ticks=FALSE),
+	                 sliderInput(inputId="span",label="Span (for LOESS smoothing):",
+	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="smooth",
 	                               label="use smoothing for estimation",
 	                               value=TRUE),
@@ -343,7 +349,8 @@ server <- function(input, output, data=Data) {
 			delay=input$delay,window=input$window,
 			smooth=input$smooth,
 			percent=input$percent,
-			show.points=input$show.points)
+			show.points=input$show.points,
+			span=input$span)
 		})
 	output$plot.allstates<-renderPlot({
 	  options(scipen=10)
@@ -353,7 +360,8 @@ server <- function(input, output, data=Data) {
 	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    delay=input$delay.bs,window=input$window.bs,
 	    smooth=TRUE,show.ifr=input$show.ifr,
-	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent)
+	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
+	    span=input$span.bs)
 	})
 	output$plot.range<-renderPlot({
 	  options(scipen=10)
@@ -366,7 +374,8 @@ server <- function(input, output, data=Data) {
 	    ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
 	    input$ifr4.range[2],input$ifr5.range[2])/100,
 	    delay=input$delay.range,window=input$window.range,
-      cumulative=input$cumulative.range,percent=input$percent.range)
+      cumulative=input$cumulative.range,percent=input$percent.range,
+	    span=input$span.range)
 	})
 }
 

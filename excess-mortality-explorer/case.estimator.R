@@ -390,6 +390,7 @@ cases.by.state<-function(states=NULL,
 	xlim=c(45,366-15),
 	show.as.percent=FALSE,
 	...){
+	if(length(span)==1) span<-c(span,0.3)
 	if(length(ifr)==1) ifr<-rep(ifr,366)
 	else if(length(ifr)>1){
 		tmp<-vector()
