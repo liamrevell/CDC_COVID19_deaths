@@ -176,17 +176,19 @@ case.estimator<-function(state="Massachusetts",
 				mtext(paste("b)",state,"daily estimated confirmed cases/infections"),
 					adj=0,line=1,cex=1.2)
 			}
-			tt<-1:(length(obsCases)-length(estCases))+length(estCases)
-			CR<-predict(fm,newdata=data.frame(tt=tt))
-			if(length(obsCases[tt])!=length(CR)){
-				tt<-(T-99):T
-				cr<-rep(mean(cr[(T-99):T]),100)
-				fm<-lm(cr~tt)
+			if(delay>0){
 				tt<-1:(length(obsCases)-length(estCases))+length(estCases)
 				CR<-predict(fm,newdata=data.frame(tt=tt))
+				if(length(obsCases[tt])!=length(CR)){
+					tt<-(T-99):T
+					cr<-rep(mean(cr[(T-99):T]),100)
+					fm<-lm(cr~tt)
+					tt<-1:(length(obsCases)-length(estCases))+length(estCases)
+					CR<-predict(fm,newdata=data.frame(tt=tt))
+				}
+				if(show.cr) lines(tt,CR,lwd=2,col=cols[2],lty="dotted")
+				estCases<-c(estCases,obsCases[tt]/CR)
 			}
-			if(show.cr) lines(tt,CR,lwd=2,col=cols[2],lty="dotted")
-			estCases<-c(estCases,obsCases[tt]/CR)
 			tt<-1:length(estCases)
 			fit<-loess(estCases~tt,span=span[1])
 			estCases<-predict(fit)
@@ -266,44 +268,46 @@ case.estimator<-function(state="Massachusetts",
 			estCases<-estCases[(delay+1):length(estCases)]
 			estCases<-estCases/ifr[1:length(estCases)]
 			T<-length(estCases)
-			cr<-ObsCases[1:length(estCases)]/estCases
-			tt<-1:length(cr)
-			cr[is.nan(cr)]<-0
-			cr[cr==Inf]<-0
-			cr[cr==-Inf]<-0
-			if(window<7) cr<-moving.average(cr,7)
-			cr[cr>10*mean(cr[100:length(cr)])]<-mean(cr)
-			cr[cr<0]<-0
-			object<-data.frame(tt,cr)
-			fm<-try(nls(cr~a/(1+exp(-b*(tt-c))),
-				start=list(a=0.3,b=0.05,c=100),
-				control=list(maxiter=100),data=object))
-			ntries<-0
-			while(attr(fm,"class")=="try-error"&&ntries<10){
-				ii<-sort(sample(1:T,100))
-				fm<-try(nls(cr[ii]~a/(1+exp(-b*(tt[ii]-c))),
+			if(delay>0){
+				cr<-ObsCases[1:length(estCases)]/estCases
+				tt<-1:length(cr)
+				cr[is.nan(cr)]<-0
+				cr[cr==Inf]<-0
+				cr[cr==-Inf]<-0
+				if(window<7) cr<-moving.average(cr,7)
+				cr[cr>10*mean(cr[100:length(cr)])]<-mean(cr)
+				cr[cr<0]<-0
+				object<-data.frame(tt,cr)
+				fm<-try(nls(cr~a/(1+exp(-b*(tt-c))),
 					start=list(a=0.3,b=0.05,c=100),
-					control=list(maxiter=1000)))
-				ntries<-ntries+1
-			}
-			if(attr(fm,"class")=="try-error"){
-				tt<-(T-99):T
-				cr<-rep(mean(cr[(T-99):T]),100)
-				fm<-lm(cr~tt)
-			}
-			tt<-1:(length(ObsCases)-length(estCases))+length(estCases)
-			CR<-predict(fm,newdata=data.frame(tt=tt))
-			if(length(ObsCases[tt])!=length(CR)){
-				tt<-(T-99):T
-				cr<-rep(mean(cr[(T-99):T]),100)
-				fm<-lm(cr~tt)
+					control=list(maxiter=100),data=object))
+				ntries<-0
+				while(attr(fm,"class")=="try-error"&&ntries<10){
+					ii<-sort(sample(1:T,100))
+					fm<-try(nls(cr[ii]~a/(1+exp(-b*(tt[ii]-c))),
+						start=list(a=0.3,b=0.05,c=100),
+						control=list(maxiter=1000)))
+					ntries<-ntries+1
+				}
+				if(attr(fm,"class")=="try-error"){
+					tt<-(T-99):T
+					cr<-rep(mean(cr[(T-99):T]),100)
+					fm<-lm(cr~tt)
+				}
 				tt<-1:(length(ObsCases)-length(estCases))+length(estCases)
 				CR<-predict(fm,newdata=data.frame(tt=tt))
+				if(length(ObsCases[tt])!=length(CR)){
+					tt<-(T-99):T
+					cr<-rep(mean(cr[(T-99):T]),100)
+					fm<-lm(cr~tt)
+					tt<-1:(length(ObsCases)-length(estCases))+length(estCases)
+					CR<-predict(fm,newdata=data.frame(tt=tt))
+				}
 			}
 			estCases<-c(rep(0,21),Cases$tot_death)
 			estCases<-estCases[(delay+1):length(estCases)]
 			estCases<-estCases/ifr[1:length(estCases)]
-			estCases<-c(estCases,estCases[length(estCases)]+cumsum(ObsCases[tt]/CR))
+			if(delay>0) estCases<-c(estCases,estCases[length(estCases)]+cumsum(ObsCases[tt]/CR))
 			tt<-1:length(estCases)
 			estCases<-fitted(loess(estCases~tt,span=span[1]))
 			estCases[estCases<0]<-0
@@ -593,7 +597,7 @@ fixCases<-function(Cases){
 			Temp$tot_cases[[ww[i]]]<-cumsum(Temp$new_case[[ww[i]]])
 			Temp$dates[[ww[i]]]<-dd
 		}
-	}
+	} else dd<-Temp$dates[[1]]
 	Cases<-data.frame(
 		submission_date=rep(dd,length(states)),
 		state=as.vector(sapply(states,function(x,n) rep(x,n),n=length(dd))),
@@ -603,5 +607,121 @@ fixCases<-function(Cases){
 		new_death=as.vector(sapply(Temp$new_death,function(x) x)))
 	Cases
 }
+
+compare.infections<-function(states=
+	c("Massachusetts","California",NULL),
+	cumulative=FALSE,
+	data=list(),
+	delay=20,
+	ifr=0.005,
+	window=7,
+	smooth=TRUE,
+	span=c(0.2,0.3),
+	plot=TRUE,
+	bg="transparent",
+	xlim=c(45,366-15),
+	per.capita=TRUE,
+	...){
+	states<-states[!is.null(states)]
+	ms<-cumsum(c(0,31,29,31,30,31,30,31,31,30,31,30,31))
+	mm<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
+		"Sep","Oct","Nov","Dec","Jan (2021)")
+	denom<-if(per.capita) " / 1M" else ""
+	if(length(states)>0){
+		cols<-distinctColorPalette(length(states))
+		## plot deaths
+		dd<-list()
+		for(i in 1:length(states)){
+			if(states[i]=="New York"){ 
+				dd[[i]]<-rowSums(
+					sapply(c("New York City","New York (excluding NYC)"),
+					case.estimator,cumulative=cumulative,
+					data=data,delay=0,ifr=1,window=window,smooth=smooth,
+					span=span,percent=FALSE,plot=FALSE))
+				if(per.capita){
+					SS<-age.deaths(data=data,plot=FALSE,return="States")
+					NY<-sum(SS[c("New York","New York City"),"2020"])
+					dd[[i]]<-dd[[i]]/NY*100
+				}
+			} else dd[[i]]<-case.estimator(states[i],cumulative=cumulative,
+				data=data,delay=0,ifr=1,window=window,smooth=smooth,
+				span=span,percent=per.capita,plot=FALSE)
+		}
+		if(per.capita) dd<-lapply(dd,function(x) x*10^4)
+		par(mfrow=c(2,1),mar=c(5.1,5.1,3.1,3.1),bg=bg)
+		plot(NA,xlim=xlim,ylim=1.2*c(0,max(sapply(dd,max))),bty="n",
+			ylab="",xlab="",axes=FALSE)
+		if(cumulative) title(ylab=paste("estimated cumulative deaths",
+			denom,sep=""),line=4)
+		else title(ylab=paste("estimated daily deaths",denom,sep=""),line=4)
+		Args<-list(...)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		Args$side<-2
+		Args$labels<-FALSE
+		Args$at<-NULL
+		h<-do.call(axis,Args)
+		Args$at<-h
+		Args$labels<-if(max(h)>1000000) paste(h/1000000,"M",sep="") else
+			if(max(h)>1000) paste(h/1000,"k",sep="") else h
+		abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
+		do.call(axis,Args)
+		mapply(lines,dd,col=cols,MoreArgs=list(lty="dashed"))
+		legend(x="topleft",states,lty="dashed",col=cols,
+			bty="n",cex=0.9,xpd=TRUE,xjust=0.5,yjust=1)
+		if(cumulative) 
+			mtext(paste("a) cumulative deaths",denom,sep=""),adj=0,line=1,cex=1.2)
+		else
+			mtext(paste("a) daily deaths",denom,sep=""),adj=0,line=1,cex=1.2)
+		## plot infections
+		ii<-list()
+		for(i in 1:length(states)){
+			if(states[i]=="New York"){ 
+				ii[[i]]<-rowSums(
+					sapply(c("New York City","New York (excluding NYC)"),
+					case.estimator,cumulative=cumulative,
+					data=data,delay=delay,ifr=ifr,window=window,smooth=smooth,
+					span=span,percent=FALSE,plot=FALSE))
+				if(per.capita){
+					SS<-age.deaths(data=data,plot=FALSE,return="States")
+					NY<-sum(SS[c("New York","New York City"),"2020"])
+					ii[[i]]<-ii[[i]]/NY*100
+				}
+			} else ii[[i]]<-case.estimator(states[i],cumulative=cumulative,
+				data=data,delay=delay,ifr=ifr,window=window,smooth=smooth,
+				span=span,percent=per.capita,plot=FALSE)
+		}
+		if(per.capita) ii<-lapply(ii,function(x) x*10^4)
+		plot(NA,xlim=xlim,ylim=1.2*c(0,max(sapply(ii,max))),bty="n",
+			ylab="",xlab="",axes=FALSE)
+		if(cumulative) title(ylab=paste("estimated cumulative infections",
+			denom,sep=""),line=4)
+		else title(ylab=paste("estimated daily infections",denom,sep=""),line=4)
+		Args<-list(...)
+		Args$side<-1
+		Args$at<-ms
+		Args$labels<-mm
+		do.call(axis,Args)
+		Args$side<-2
+		Args$labels<-FALSE
+		Args$at<-NULL
+		h<-do.call(axis,Args)
+		Args$at<-h
+		Args$labels<-if(max(h)>1000000) paste(h/1000000,"M",sep="") else
+			if(max(h)>1000) paste(h/1000,"k",sep="") else h
+		abline(h=h,col=grey(0.75),lwd=1,lty="dotted")
+		do.call(axis,Args)
+		mapply(lines,ii,col=cols,MoreArgs=list(lty="dashed"))
+		legend(x="topleft",states,lty="dashed",col=cols,
+			bty="n",cex=0.9,xpd=TRUE,xjust=0.5,yjust=1)
+		if(cumulative) 
+			mtext(paste("a) estimated cumulative infections",denom,sep=""),adj=0,line=1,cex=1.2)
+		else
+			mtext(paste("a) estimated daily infections",denom,sep=""),adj=0,line=1,cex=1.2)
+	}
+}
+
 
 

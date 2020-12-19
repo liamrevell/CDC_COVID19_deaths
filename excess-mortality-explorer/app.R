@@ -2,6 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(phytools)
 library(maps)
+library(randomcoloR)
 source("state.deaths.R")
 source("age.deaths.R")
 source("case.estimator.R")
@@ -22,6 +23,8 @@ ui<-fluidPage(
     direction = "bottom"
 	),
 	tabsetPanel(
+	  type="pills",
+	  selected="State comparison",
 	  tabPanel("COVID-19 infections", fluid = TRUE,
 	           verticalLayout(
 	             sidebarLayout(
@@ -63,14 +66,76 @@ ui<-fluidPage(
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
-	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
-	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
+	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
 	                 "All data files & code are available",a("here",
 	                  href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
 	  ),
+	  tabPanel("State comparison", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 selectInput(inputId="states",label="State or jurisdiction to compare",
+	                             choices=c("United States","Alabama","Alaska","Arizona",
+	                                       "Arkansas","California","Colorado","Connecticut",
+	                                       "Delaware","District of Columbia","Florida",
+	                                       "Georgia","Hawaii","Idaho","Illinois",
+	                                       "Indiana","Iowa","Kansas","Kentucky","Louisiana",
+	                                       "Maine","Maryland","Massachusetts","Michigan","Minnesota",
+	                                       "Mississippi","Missouri","Montana","Nebraska","Nevada",
+	                                       "New Hampshire","New Jersey","New Mexico","New York",
+	                                       "New York City","North Carolina","North Dakota",
+	                                       "Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+	                                       "Rhode Island","South Carolina","South Dakota","Tennessee",
+	                                       "Texas","Utah","Vermont","Virginia",
+	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
+	                             multiple=TRUE,
+	                             selected="Massachusetts"),
+	                 sliderInput(inputId="ifr1.c",label="IFR Jan. 1, 2020 (%):",value=0.65,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr2.c",label="IFR Apr. 1, 2020 (%):",value=0.55,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr3.c",label="IFR Jul. 1, 2020 (%):",value=0.45,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr4.c",label="IFR Oct. 1, 2020 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr5.c",label="IFR Jan. 1, 2021 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay.c",label="Average lag-time from infection to death:",
+	                             value=21,min=0,max=30,ticks=FALSE),
+	                 sliderInput(inputId="window.c",label="Window for moving averages:",
+	                             value=14,min=1,max=21,ticks=FALSE),
+	                 sliderInput(inputId="span.c",label="Span (for LOESS smoothing):",
+	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
+	                 checkboxInput(inputId="per.capita",
+	                               label="show as rate / 1M population",
+	                               value=TRUE),
+	                 checkboxInput(inputId="cumulative.c",
+	                               label="show cumulative",
+	                               value=FALSE),
+	                 width=3
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.comparison",width="auto",height="800px"),
+	                 width=9
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	                 a("COVID-19 Cases and Deaths by State over Time",
+	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
+	                 ".",
+	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
+	                 "All data files & code are available",a("here",
+	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),	  
 	  tabPanel("Plausible range", fluid = TRUE,
 	           verticalLayout(
 	             sidebarLayout(
@@ -124,8 +189,8 @@ ui<-fluidPage(
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
-	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
-	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
+	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
 	                 "All data files & code are available",a("here",
 	                                                         href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
@@ -376,6 +441,17 @@ server <- function(input, output, data=Data) {
 	    delay=input$delay.range,window=input$window.range,
       cumulative=input$cumulative.range,percent=input$percent.range,
 	    span=input$span.range)
+	})
+	output$plot.comparison<-renderPlot({
+	  options(scipen=10)
+	  par(lend=1,lwd=2)
+	  compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
+	    data=data,ifr=c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
+	    input$ifr4.c,input$ifr5.c)/100,
+	    delay=input$delay.c,window=input$window.c,
+	    cumulative=input$cumulative.c,
+	    per.capita=input$per.capita,
+	    span=input$span.c)
 	})
 }
 
