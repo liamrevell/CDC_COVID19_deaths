@@ -1,59 +1,69 @@
 library(shiny)
 library(shinyWidgets)
-library(phytools)
-library(maps)
-library(randomcoloR)
-source("state.deaths.R")
-source("age.deaths.R")
-source("case.estimator.R")
-source("case.range.estimator.R")
+library(covid19.Explorer)
+
 Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
 Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
 States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
 age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
 Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
+CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
+Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
 
-Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers)
+Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
+           CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
+
+tweet_url<-"https://twitter.com/intent/tweet?text=Check%20out%20this%20cool%20COVID-19%20app:&url=http://covid19-explorer.org"
+facebook_url<-"https://www.facebook.com/sharer/sharer.php?u=http://covid19-explorer.org"
 
 ui<-fluidPage(
-  setBackgroundColor(
-    color = c("white", "#E8E8E8"),
-    gradient = "linear",
-    direction = "bottom"
+	setBackgroundColor(
+		color = c("white", "#E8E8E8"),
+		gradient = "linear",
+		direction = "bottom"
 	),
 	tabsetPanel(
-	  type="pills",
-	  selected="State comparison",
-	  tabPanel("COVID-19 infections", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
-	                 sliderInput(inputId="ifr1.bs",label="IFR Jan. 1, 2020 (%):",value=0.65,
+		type="pills",
+		selected="Deaths by age",
+		tabPanel("COVID-19 infections", fluid = TRUE,
+			verticalLayout(
+				sidebarLayout(
+					sidebarPanel(
+						sliderInput(inputId="ifr1.bs",label="IFR Jan. 1, 2020 (%):",value=0.65,
+							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+						sliderInput(inputId="ifr2.bs",label="IFR Apr. 1, 2020 (%):",value=0.55,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr2.bs",label="IFR Apr. 1, 2020 (%):",value=0.55,
-	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr3.bs",label="IFR Jul. 1, 2020 (%):",value=0.45,
-	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr4.bs",label="IFR Oct. 1, 2020 (%):",value=0.4,
-	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr5.bs",label="IFR Jan. 1, 2021 (%):",value=0.4,
-	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
-	                             value=21,min=0,max=30,ticks=FALSE),
-	                 sliderInput(inputId="window.bs",label="Window for moving averages:",
-	                             value=14,min=1,max=21,ticks=FALSE),
-	                 sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
-	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
-	                 checkboxInput(inputId="cumulative.bs",
-	                               label="show cumulative infections",
-	                               value=FALSE),
-	                 checkboxInput(inputId="show.as.percent",
-	                               label="show as % of all infections",
-	                               value=FALSE),
-	                 checkboxInput(inputId="show.ifr",
-	                               label="show assumed IFR (%)",
-	                               value=FALSE),
+						sliderInput(inputId="ifr3.bs",label="IFR Jul. 1, 2020 (%):",value=0.45,
+							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+						sliderInput(inputId="ifr4.bs",label="IFR Oct. 1, 2020 (%):",value=0.4,
+							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+						sliderInput(inputId="ifr5.bs",label="IFR Jan. 1, 2021 (%):",value=0.4,
+							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+						sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
+							value=21,min=0,max=30,ticks=FALSE),
+						sliderInput(inputId="window.bs",label="Window for moving averages:",
+							value=7,min=1,max=21,ticks=FALSE),
+						sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
+							value=0.15,min=0.05,max=0.4,ticks=FALSE),
+						checkboxInput(inputId="cumulative.bs",
+							label="show cumulative infections",
+							value=FALSE),
+						checkboxInput(inputId="show.as.percent",
+							label="show as % of all infections",
+							value=FALSE),
+						checkboxInput(inputId="show.ifr",
+							label="show assumed IFR (%)",
+							value=FALSE),
+						actionButton("twitter_share",
+						             label = "",
+						             icon = icon("twitter"),
+						             onclick = sprintf("window.open('%s')", tweet_url)),
+						actionButton("facebook_share",
+						             label = "",
+						             icon = icon("facebook"),
+						             onclick = sprintf("window.open('%s')", facebook_url)),
+						downloadButton(outputId="down.allstates",label="Save Plot"),
 	                 width=3
 	               ),
 	               mainPanel(
@@ -68,8 +78,88 @@ ui<-fluidPage(
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All data files & code are available",a("here",
-	                  href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "All code is available",a("here",
+	                  href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),
+	  tabPanel("Deaths by age", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 selectInput(inputId="ages",
+	                                    label="Select age group(s):",
+	                                    choices=c("Under 1 year",
+	                                              "1-4 years",
+	                                              "5-14 years",
+	                                              "15-24 years",
+	                                              "25-34 years",
+	                                              "35-44 years",
+	                                              "45-54 years",
+	                                              "55-64 years",
+	                                              "65-74 years",
+	                                              "75-84 years",
+	                                              "85 years and over"),
+	                                    selected=c("Under 1 year",
+	                                               "1-4 years",
+	                                               "5-14 years",
+	                                               "15-24 years",
+	                                               "25-34 years",
+	                                               "35-44 years",
+	                                               "45-54 years",
+	                                               "55-64 years",
+	                                               "65-74 years",
+	                                               "75-84 years",
+	                                               "85 years and over"),
+	                             multiple=TRUE),
+	                 selectInput(inputId="sex",
+	                                    label="Select sex(es):",
+	                                    choices=c("Female","Male"),
+	                                    selected=c("Female","Male"),multiple=TRUE),
+					selectInput(inputId="show.cd",
+						label="Show plot of:",
+						choices=c("raw deaths","deaths / 1M population",
+						"as % of total"),
+						selected="raw deaths",
+					),
+					selectInput(inputId="plot.cd",
+					  label="Plotting options:",
+					  choices=c("bar plot","polygons","smoothed"),
+					  selected="bar plot",
+					),
+					checkboxInput(inputId="split.cd",
+					              label="split groups",
+					             value=TRUE),
+	                checkboxInput(inputId="cumulative.cd",
+	                               label="show cumulative mortality",
+	                               value=FALSE),
+					actionButton("twitter_share",
+					             label = "",
+					             icon = icon("twitter"),
+					             onclick = sprintf("window.open('%s')", tweet_url)),
+					actionButton("facebook_share",
+					             label = "",
+					             icon = icon("facebook"),
+					             onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.cd",label="Save Plot"),
+	                width=3
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.cd",width="auto",height="800px"),
+	                 width=9
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),
+	                 "Mortality data are from the ",
+	                 a("CDC",href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Death-Counts-by-Sex-Age-and-W/vsak-wrfu",
+	                 target="_blank",.noWS="outside"),
+	                 ". Data for recent weeks are incomplete and likely underestimate true deaths.",
+	                 "Population numbers by age group are based on U.S. Census Bureau projections and are available ",
+	                 a("here",href="https://wonder.cdc.gov/population-projections-2014-2060.html",target="_blank",.noWS="after"),
+	                 ". All code is available",a("here",
+	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -107,15 +197,24 @@ ui<-fluidPage(
 	                 sliderInput(inputId="delay.c",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.c",label="Window for moving averages:",
-	                             value=14,min=1,max=21,ticks=FALSE),
+	                             value=7,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span.c",label="Span (for LOESS smoothing):",
-	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
+	                             value=0.15,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="per.capita",
 	                               label="show as rate / 1M population",
 	                               value=TRUE),
 	                 checkboxInput(inputId="cumulative.c",
 	                               label="show cumulative",
 	                               value=FALSE),
+	                 actionButton("twitter_share",
+	                              label = "",
+	                              icon = icon("twitter"),
+	                              onclick = sprintf("window.open('%s')", tweet_url)),
+	                 actionButton("facebook_share",
+	                              label = "",
+	                              icon = icon("facebook"),
+	                              onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.comparison",label="Save Plot"),
 	                 width=3
 	               ),
 	               mainPanel(
@@ -130,8 +229,8 @@ ui<-fluidPage(
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All data files & code are available",a("here",
-	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "All code is available",a("here",
+	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -168,15 +267,24 @@ ui<-fluidPage(
 	                 sliderInput(inputId="delay.range",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window.range",label="Window for moving averages:",
-	                             value=14,min=1,max=21,ticks=FALSE),
+	                             value=7,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span.range",label="Span (for LOESS smoothing):",
-	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
+	                             value=0.15,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="percent.range",
 	                               label="show as percent of total population",
 	                               value=FALSE),
 	                 checkboxInput(inputId="cumulative.range",
 	                               label="show cumulative infections",
 	                               value=FALSE),
+	                 actionButton("twitter_share",
+	                              label = "",
+	                              icon = icon("twitter"),
+	                              onclick = sprintf("window.open('%s')", tweet_url)),
+	                 actionButton("facebook_share",
+	                              label = "",
+	                              icon = icon("facebook"),
+	                              onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.range",label="Save Plot"),
 	                 width=3
 	               ),
 	               mainPanel(
@@ -191,8 +299,8 @@ ui<-fluidPage(
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All data files & code are available",a("here",
-	                                                         href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "All code is available",a("here",
+	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -229,9 +337,9 @@ ui<-fluidPage(
 	                 sliderInput(inputId="delay",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
 	                 sliderInput(inputId="window",label="Window for moving averages:",
-	                             value=14,min=1,max=21,ticks=FALSE),
+	                             value=7,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span",label="Span (for LOESS smoothing):",
-	                             value=0.2,min=0.05,max=0.4,ticks=FALSE),
+	                             value=0.15,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="smooth",
 	                               label="use smoothing for estimation",
 	                               value=TRUE),
@@ -243,6 +351,15 @@ ui<-fluidPage(
 	                               value=FALSE),
 	                 checkboxInput(inputId="show.points",label="show points (used in smoothing)",
 	                               value=FALSE),
+	                 actionButton("twitter_share",
+	                              label = "",
+	                              icon = icon("twitter"),
+	                              onclick = sprintf("window.open('%s')", tweet_url)),
+	                 actionButton("facebook_share",
+	                              label = "",
+	                              icon = icon("facebook"),
+	                              onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.cases",label="Save Plot"),
 	                 width=3
 	               ),
 	               mainPanel(
@@ -258,8 +375,8 @@ ui<-fluidPage(
 	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
 	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
-	                 "All data files & code are available",a("here",
-	                 href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+	                 "All code is available",a("here",
+	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -301,6 +418,15 @@ ui<-fluidPage(
 						end=as.Date("12/31/2020",format="%m/%d/%Y"),
 						min=as.Date("01/01/2020",format="%m/%d/%Y"),
 						max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month"),
+					actionButton("twitter_share",
+					             label = "",
+					             icon = icon("twitter"),
+					             onclick = sprintf("window.open('%s')", tweet_url)),
+					actionButton("facebook_share",
+					             label = "",
+					             icon = icon("facebook"),
+					             onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.age",label="Save Plot"),
 				  width=3
 				),
 				mainPanel(
@@ -312,8 +438,8 @@ ui<-fluidPage(
 		  	p(strong("Details:"),"The data for these plots come from the U.S. CDC provisional death counts.", 
 			    "Data for recent weeks are estimated based on reporting in past years.",
 			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/NCHS/Weekly-counts-of-deaths-by-jurisdiction-and-age-gr/y5bj-9g5w",
-			    target="_blank",.noWS="outside"),". All data files & code are available",a("here",
-			    href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+			    target="_blank",.noWS="outside"),". All code is available",a("here",
+			    href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 			    "Counts below 10 are not reported, so a Poisson model was used to estimate them.",
 			    "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 			  width=12)
@@ -350,6 +476,15 @@ ui<-fluidPage(
 		                            min=as.Date("01/01/2020",format="%m/%d/%Y"),
 		                            max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month"),
 		            selectInput(inputId="type",label="Line type",choices=c("smooth","step")),
+		            actionButton("twitter_share",
+		                         label = "",
+		                         icon = icon("twitter"),
+		                         onclick = sprintf("window.open('%s')", tweet_url)),
+		            actionButton("facebook_share",
+		                         label = "",
+		                         icon = icon("facebook"),
+		                         onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.state",label="Save Plot"),
                 width=3  
 		           ),
 		           mainPanel(
@@ -367,8 +502,8 @@ ui<-fluidPage(
 		              href="https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/muzy-jte6",
 		              target="_blank",.noWS="outside"),"). State population size data are from the",a("U.S. census bureau",
 		              href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html",target="_blank",.noWS="after"),
-                  ". All data files & code are available",a("here",
-		              href="https://github.com/liamrevell/CDC_COVID19_deaths/",target="_blank",.noWS="after"),".",
+                  ". All code is available",a("here",
+		              href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
 		              "Detailed methodology is",a("here",
 		              href="https://liamrevell.github.io/excess-mortality-methodology.html",target="_blank",.noWS="after"),".",
 		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
@@ -378,7 +513,7 @@ ui<-fluidPage(
 	)
 )
 
-server <- function(input, output, data=Data) {
+server <- function(input, output, data=Data, session) {
 	output$plot.state<-renderPlot({
 		options(scipen=10)
 		par(lend=1)
@@ -389,6 +524,23 @@ server <- function(input, output, data=Data) {
 			date.range=list(start.date=input$start.end[1],
 			end.date=input$start.end[2]))
 	})
+	output$down.state<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    state.deaths(state=input$state,plot=input$plot,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			type=if(input$type=="step") "s" else "l",
+			data=data,corrected=input$corrected,
+			date.range=list(start.date=input$start.end[1],
+			end.date=input$start.end[2]),
+			bg="white")
+	    dev.off()
+	  }
+	)
 	output$plot.age<-renderPlot({
 		options(scipen=10)
 		par(lend=1)
@@ -403,10 +555,31 @@ server <- function(input, output, data=Data) {
 			start.date=input$start.end.age[1],
 			end.date=input$start.end.age[2]))
 	})
+	output$down.age<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    age.deaths(state=input$state.age,
+			plot=input$plot.age,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			age.group=input$age.group,
+			data=data,
+			corrected=input$corrected.age,
+			cumulative=input$cumulative,
+			date.range=list(
+			start.date=input$start.end.age[1],
+			end.date=input$start.end.age[2]),
+			bg="white")
+	    dev.off()
+	  }
+	)
 	output$plot.cases<-renderPlot({
 		options(scipen=10)
 		par(lend=1)
-		case.estimator(state=input$state.cases,
+		infection.estimator(state=input$state.cases,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			data=data,
 			cumulative=input$cumulative.cases,
@@ -417,10 +590,31 @@ server <- function(input, output, data=Data) {
 			show.points=input$show.points,
 			span=input$span)
 		})
+	output$down.cases<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    infection.estimator(state=input$state.cases,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			data=data,
+			cumulative=input$cumulative.cases,
+			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			delay=input$delay,window=input$window,
+			smooth=input$smooth,
+			percent=input$percent,
+			show.points=input$show.points,
+			span=input$span,
+			bg="white")
+	    dev.off()
+	  }
+	)
 	output$plot.allstates<-renderPlot({
 	  options(scipen=10)
 	  par(lend=1)
-	  cases.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
+	  infections.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
 	    data=data,
 	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    delay=input$delay.bs,window=input$window.bs,
@@ -428,10 +622,28 @@ server <- function(input, output, data=Data) {
 	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
 	    span=input$span.bs)
 	})
+	output$down.allstates<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=8,units="in",res=800) # open the png device
+	    par(lend=1)
+	    infections.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
+		    	data=data,
+	        ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	        delay=input$delay.bs,window=input$window.bs,
+	        smooth=TRUE,show.ifr=input$show.ifr,
+	        cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
+	        span=input$span.bs,
+		    	bg="white")
+	    dev.off()
+	  }
+	)
 	output$plot.range<-renderPlot({
 	  options(scipen=10)
 	  par(lend=1)
-	  case.range.estimator(state=input$state.range,
+	  infection.range.estimator(state=input$state.range,
 	    las=1,cex.axis=0.8,cex.lab=0.9,
 	    data=data,
 	    ifr.low=c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
@@ -439,9 +651,30 @@ server <- function(input, output, data=Data) {
 	    ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
 	    input$ifr4.range[2],input$ifr5.range[2])/100,
 	    delay=input$delay.range,window=input$window.range,
-      cumulative=input$cumulative.range,percent=input$percent.range,
+		cumulative=input$cumulative.range,percent=input$percent.range,
 	    span=input$span.range)
 	})
+	output$down.range<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    infection.range.estimator(state=input$state.range,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			data=data,
+			ifr.low=c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
+			input$ifr4.range[1],input$ifr5.range[1])/100,
+			ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
+			input$ifr4.range[2],input$ifr5.range[2])/100,
+			delay=input$delay.range,window=input$window.range,
+			cumulative=input$cumulative.range,percent=input$percent.range,
+			span=input$span.range,
+			bg="white")
+	    dev.off()
+	  }
+	)
 	output$plot.comparison<-renderPlot({
 	  options(scipen=10)
 	  par(lend=1,lwd=2)
@@ -453,6 +686,90 @@ server <- function(input, output, data=Data) {
 	    per.capita=input$per.capita,
 	    span=input$span.c)
 	})
+	output$down.comparison<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
+			  data=data,ifr=c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
+			  input$ifr4.c,input$ifr5.c)/100,
+			  delay=input$delay.c,window=input$window.c,
+			  cumulative=input$cumulative.c,
+			  per.capita=input$per.capita,
+			  span=input$span.c,
+		  	bg="white")
+	    dev.off()
+	  }
+	)
+	observe({
+	  x<-input$split.cd
+	  y<-input$show.cd
+    if(x&&y%in%c("deaths / 1M population","as % of total"))
+	    updateSelectInput(session, "plot.cd",
+	      label="Plotting options:",
+	      choices=c("smoothed"),
+	      selected="smoothed")
+	})
+	observe({
+	  x<-input$split.cd
+	  if(x==FALSE)
+	    updateSelectInput(session, "plot.cd",
+	    label="Plotting options:",
+	    choices=c("bar plot","polygons","smoothed"),
+	    selected=input$plot.cd)
+	})
+	observe({
+	  x<-input$show.cd
+	  if(x=="raw deaths")
+	    updateSelectInput(session, "plot.cd",
+	      label="Plotting options:",
+	      choices=c("bar plot","polygons","smoothed"),
+	      selected=input$plot.cd)
+	})
+	output$plot.cd<-renderPlot({
+	  options(scipen=10)
+	  show<-if(input$show.cd=="raw deaths") "raw" else 
+	    if(input$show.cd=="deaths / 1M population") "per.capita" else
+	    if(input$show.cd=="as % of total") "percent"
+	  plot<-if(input$plot.cd=="bar plot") "bar" else 
+	    if(input$plot.cd=="polygons") "standard" else
+	    if(input$plot.cd=="smoothed") "smooth"
+	  covid.deaths(age.group=input$ages,
+	    sex=input$sex,
+		  las=1,cex.axis=0.8,cex.lab=0.9,
+	    data=data,
+	    cumulative=input$cumulative.cd,
+		  show=show,plot=plot,
+		  split.groups=input$split.cd)
+	})
+	output$down.cd<-downloadHandler(
+	  filename =  function() {
+	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+	  },
+	  content = function(file) {
+	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    par(lend=1)
+	    show<-if(input$show.cd=="raw deaths") "raw" else 
+	      if(input$show.cd=="deaths / 1M population") "per.capita" else
+	        if(input$show.cd=="as % of total") "percent"
+	    plot<-if(input$plot.cd=="bar plot") "bar" else 
+	      if(input$plot.cd=="polygons") "standard" else
+	        if(input$plot.cd=="smoothed") "smooth"
+	    covid.deaths(age.group=input$ages,
+			  sex=input$sex,
+			  las=1,cex.axis=0.8,cex.lab=0.9,
+			  data=data,
+			  cumulative=input$cumulative.cd,
+			  show=show,plot=plot,
+			  split.groups=input$split.cd,
+			  bg="white")
+	    dev.off()
+	  }
+	)
 }
+
 
 shinyApp(ui = ui, server = server)

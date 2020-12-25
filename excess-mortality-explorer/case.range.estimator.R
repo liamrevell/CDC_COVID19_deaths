@@ -1,4 +1,4 @@
-case.range.estimator<-function(state="Massachusetts",
+infection.range.estimator<-function(state="Massachusetts",
 	cumulative=FALSE,
 	data=list(),
 	delay=20,
@@ -141,13 +141,13 @@ case.range.estimator<-function(state="Massachusetts",
 		cex=0.9,pt.cex=c(NA,1.5),lwd=c(2,NA),
 		box.col="transparent")
 	if(state!="New York"){
-		e.high<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
+		e.high<-infection.estimator(state,cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=percent)
-		e.mid<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
+		e.mid<-infection.estimator(state,cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=percent)
-		e.low<-case.estimator(state,cumulative=cumulative,data=data,delay=delay,
+		e.low<-infection.estimator(state,cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=percent)
 	} else {
@@ -156,22 +156,22 @@ case.range.estimator<-function(state="Massachusetts",
 			States<-state.deaths(plot="States")
 			pp<-sum(States[c("New York","New York City"),"2020"])/100
 		} else pp<-1
-		e.high<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+		e.high<-(infection.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE)+
-			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
+			infection.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.low,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE))/pp
-		e.mid<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+		e.mid<-(infection.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE)+
-			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
+			infection.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.mid,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE))/pp
-		e.low<-(case.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
+		e.low<-(infection.estimator(states[1],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE)+
-			case.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
+			infection.estimator(states[2],cumulative=cumulative,data=data,delay=delay,
 			ifr=ifr.high,window=window,smooth=smooth,span=span,plot=FALSE,
 			percent=FALSE))/pp
 	}

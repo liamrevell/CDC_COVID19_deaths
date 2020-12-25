@@ -8,7 +8,7 @@ moving.average<-function(x,window=7){
 	ma
 }
 
-case.estimator<-function(state="Massachusetts",
+infection.estimator<-function(state="Massachusetts",
 	cumulative=FALSE,
 	data=list(),
 	delay=20,
@@ -380,7 +380,7 @@ case.estimator<-function(state="Massachusetts",
 	invisible(estCases)
 }
 
-cases.by.state<-function(states=NULL,
+infections.by.state<-function(states=NULL,
 	cumulative=FALSE,
 	stacked=TRUE,
 	data=list(),
@@ -437,7 +437,7 @@ cases.by.state<-function(states=NULL,
 		plot=FALSE)
 	foo<-function(state,args){
 		args$state<-state
-		do.call(case.estimator,args)
+		do.call(infection.estimator,args)
 	}
 	tmp<-lapply(states,foo,args)
 	names(tmp)<-states
@@ -635,7 +635,7 @@ compare.infections<-function(states=
 			if(states[i]=="New York"){ 
 				dd[[i]]<-rowSums(
 					sapply(c("New York City","New York (excluding NYC)"),
-					case.estimator,cumulative=cumulative,
+					infection.estimator,cumulative=cumulative,
 					data=data,delay=0,ifr=1,window=window,smooth=smooth,
 					span=span,percent=FALSE,plot=FALSE))
 				if(per.capita){
@@ -643,7 +643,7 @@ compare.infections<-function(states=
 					NY<-sum(SS[c("New York","New York City"),"2020"])
 					dd[[i]]<-dd[[i]]/NY*100
 				}
-			} else dd[[i]]<-case.estimator(states[i],cumulative=cumulative,
+			} else dd[[i]]<-infection.estimator(states[i],cumulative=cumulative,
 				data=data,delay=0,ifr=1,window=window,smooth=smooth,
 				span=span,percent=per.capita,plot=FALSE)
 		}
@@ -681,7 +681,7 @@ compare.infections<-function(states=
 			if(states[i]=="New York"){ 
 				ii[[i]]<-rowSums(
 					sapply(c("New York City","New York (excluding NYC)"),
-					case.estimator,cumulative=cumulative,
+					infection.estimator,cumulative=cumulative,
 					data=data,delay=delay,ifr=ifr,window=window,smooth=smooth,
 					span=span,percent=FALSE,plot=FALSE))
 				if(per.capita){
@@ -689,7 +689,7 @@ compare.infections<-function(states=
 					NY<-sum(SS[c("New York","New York City"),"2020"])
 					ii[[i]]<-ii[[i]]/NY*100
 				}
-			} else ii[[i]]<-case.estimator(states[i],cumulative=cumulative,
+			} else ii[[i]]<-infection.estimator(states[i],cumulative=cumulative,
 				data=data,delay=delay,ifr=ifr,window=window,smooth=smooth,
 				span=span,percent=per.capita,plot=FALSE)
 		}
