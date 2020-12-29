@@ -11,6 +11,9 @@ Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
 CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
 Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
 
+dd<-as.Date(Cases$submission_date,format="%m/%d/%Y")
+Cases<-Cases[order(dd),]
+
 Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
            CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
 
@@ -25,8 +28,8 @@ ui<-fluidPage(
 	),
 	tabsetPanel(
 		type="pills",
-		selected="Deaths by age",
-		tabPanel("COVID-19 infections", fluid = TRUE,
+		selected="U.S. COVID-19 infections",
+		tabPanel("U.S. COVID-19 infections", fluid = TRUE,
 			verticalLayout(
 				sidebarLayout(
 					sidebarPanel(
@@ -45,7 +48,7 @@ ui<-fluidPage(
 						sliderInput(inputId="window.bs",label="Window for moving averages:",
 							value=7,min=1,max=21,ticks=FALSE),
 						sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
-							value=0.15,min=0.05,max=0.4,ticks=FALSE),
+							value=0.2,min=0.05,max=0.4,ticks=FALSE),
 						checkboxInput(inputId="cumulative.bs",
 							label="show cumulative infections",
 							value=FALSE),
@@ -72,14 +75,23 @@ ui<-fluidPage(
 	               )
 	             ),
 	             sidebarPanel(
-	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
+	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All code is available",a("here",
-	                  href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -152,14 +164,23 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
 	                 "Mortality data are from the ",
 	                 a("CDC",href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Death-Counts-by-Sex-Age-and-W/vsak-wrfu",
 	                 target="_blank",.noWS="outside"),
 	                 ". Data for recent weeks are incomplete and likely underestimate true deaths.",
 	                 "Population numbers by age group are based on U.S. Census Bureau projections and are available ",
 	                 a("here",href="https://wonder.cdc.gov/population-projections-2014-2060.html",target="_blank",.noWS="after"),
-	                 ". All code is available",a("here",
-	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 ". ",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -223,14 +244,23 @@ ui<-fluidPage(
 	               )
 	             ),
 	             sidebarPanel(
-	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
+	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All code is available",a("here",
-	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -293,14 +323,23 @@ ui<-fluidPage(
 	               )
 	             ),
 	             sidebarPanel(
-	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
+	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
-	                 "All code is available",a("here",
-	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -368,15 +407,24 @@ ui<-fluidPage(
 	               )
 	             ),
 	             sidebarPanel(
-	               p(strong("Details:"),"The data for these plots come from the U.S. CDC ",
+	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
+	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
 	                 ".",
 	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
 	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
-	                 "All code is available",a("here",
-	                 href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -435,12 +483,22 @@ ui<-fluidPage(
 				)
 			),
 			sidebarPanel(
-		  	p(strong("Details:"),"The data for these plots come from the U.S. CDC provisional death counts.", 
+		  	p(strong("Details:"),
+		  	  "This platform was developed using the ",
+		  	  a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+		  	  "web application framework in ",
+		  	  a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+		  	  ".",
+		  	  "The data for these plots come from the U.S. CDC provisional death counts.", 
 			    "Data for recent weeks are estimated based on reporting in past years.",
 			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/NCHS/Weekly-counts-of-deaths-by-jurisdiction-and-age-gr/y5bj-9g5w",
-			    target="_blank",.noWS="outside"),". All code is available",a("here",
-			    href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
+			    target="_blank",.noWS="outside"),
 			    "Counts below 10 are not reported, so a Poisson model was used to estimate them.",
+		  	  "Complete code and more details of methodology are available here:",
+		  	  a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+		  	  ", "
+		  	  ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+		  	  ".",
 			    "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 			  width=12)
 		  )
@@ -494,6 +552,11 @@ ui<-fluidPage(
 		         ),
 		         sidebarPanel(
 		           p(strong("Details:"),
+		              "This platform was developed using the ",
+		              a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+		              "web application framework in ",
+		              a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+		             ".",
 		              "The data for these plots come from the U.S. CDC provisional death counts.",
 		              "Data for recent weeks are incomplete. For more information please refer to the",
 		              a("CDC technical notes",href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/tech_notes.htm",target="_blank",.noWS="after"),".",
@@ -502,14 +565,20 @@ ui<-fluidPage(
 		              href="https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/muzy-jte6",
 		              target="_blank",.noWS="outside"),"). State population size data are from the",a("U.S. census bureau",
 		              href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html",target="_blank",.noWS="after"),
-                  ". All code is available",a("here",
-		              href="https://github.com/liamrevell/covid19.Explorer/",target="_blank",.noWS="after"),".",
-		              "Detailed methodology is",a("here",
-		              href="https://liamrevell.github.io/excess-mortality-methodology.html",target="_blank",.noWS="after"),".",
+		             ". Complete code and more details of methodology are available here:",
+		             a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+		             ", "
+		             ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+		             ".",
 		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 		           width=12)
 		         )
-		)
+		),
+		tabPanel("Methodology", fluid = TRUE,
+		  mainPanel(
+		    includeHTML("https://liamrevell.github.io/methodology/index.html")
+		  )
+	  )
 	)
 )
 
