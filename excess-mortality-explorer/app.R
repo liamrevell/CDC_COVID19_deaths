@@ -493,7 +493,7 @@ ui<-fluidPage(
 			    "Data for recent weeks are estimated based on reporting in past years.",
 			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/NCHS/Weekly-counts-of-deaths-by-jurisdiction-and-age-gr/y5bj-9g5w",
 			    target="_blank",.noWS="outside"),
-			    "Counts below 10 are not reported, so a Poisson model was used to estimate them.",
+			    ". Counts below 10 are not reported, so a Poisson model was used to estimate them.",
 		  	  "Complete code and more details of methodology are available here:",
 		  	  a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
 		  	  ", "
