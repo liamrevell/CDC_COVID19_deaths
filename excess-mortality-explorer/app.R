@@ -2,20 +2,8 @@ library(shiny)
 library(shinyWidgets)
 library(covid19.Explorer)
 
-Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
-Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
-States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
-age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
-Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
-Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
-CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
-Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
+data(Data)
 
-dd<-as.Date(Cases$submission_date,format="%m/%d/%Y")
-Cases<-Cases[order(dd),]
-
-Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
-           CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
 
 tweet_url<-"https://twitter.com/intent/tweet?text=Check%20out%20this%20cool%20COVID-19%20app:&url=http://covid19-explorer.org"
 facebook_url<-"https://www.facebook.com/sharer/sharer.php?u=http://covid19-explorer.org"
@@ -33,15 +21,15 @@ ui<-fluidPage(
 			verticalLayout(
 				sidebarLayout(
 					sidebarPanel(
-						sliderInput(inputId="ifr1.bs",label="IFR Jan. 1, 2020 (%):",value=0.65,
+						sliderInput(inputId="ifr1.bs",label="IFR Feb. 1, 2020 (%):",value=0.65,
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-						sliderInput(inputId="ifr2.bs",label="IFR Apr. 1, 2020 (%):",value=0.55,
-	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-						sliderInput(inputId="ifr3.bs",label="IFR Jul. 1, 2020 (%):",value=0.45,
+						sliderInput(inputId="ifr2.bs",label="IFR May. 2, 2020 (%):",value=0.55,
+	            min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+						sliderInput(inputId="ifr3.bs",label="IFR Aug. 2, 2020 (%):",value=0.45,
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-						sliderInput(inputId="ifr4.bs",label="IFR Oct. 1, 2020 (%):",value=0.4,
+						sliderInput(inputId="ifr4.bs",label="IFR Nov. 1, 2020 (%):",value=0.4,
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-						sliderInput(inputId="ifr5.bs",label="IFR Jan. 1, 2021 (%):",value=0.4,
+						sliderInput(inputId="ifr5.bs",label="IFR Jan. 31, 2021 (%):",value=0.4,
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 						sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
 							value=21,min=0,max=30,ticks=FALSE),
@@ -205,15 +193,15 @@ ui<-fluidPage(
 	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
 	                             multiple=TRUE,
 	                             selected="Massachusetts"),
-	                 sliderInput(inputId="ifr1.c",label="IFR Jan. 1, 2020 (%):",value=0.65,
+	                 sliderInput(inputId="ifr1.c",label="IFR Feb. 1, 2020 (%):",value=0.65,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr2.c",label="IFR Apr. 1, 2020 (%):",value=0.55,
+	                 sliderInput(inputId="ifr2.c",label="IFR May. 2, 2020 (%):",value=0.55,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr3.c",label="IFR Jul. 1, 2020 (%):",value=0.45,
+	                 sliderInput(inputId="ifr3.c",label="IFR Aug. 2, 2020 (%):",value=0.45,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr4.c",label="IFR Oct. 1, 2020 (%):",value=0.4,
+	                 sliderInput(inputId="ifr4.c",label="IFR Nov. 1, 2020 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr5.c",label="IFR Jan. 1, 2021 (%):",value=0.4,
+	                 sliderInput(inputId="ifr5.c",label="IFR Jan. 31, 2021 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay.c",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
@@ -284,15 +272,15 @@ ui<-fluidPage(
 	                                       "Texas","Utah","Vermont","Virginia",
 	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
 	                             selected="Massachusetts"),
-	                 sliderInput(inputId="ifr1.range",label="IFR range Jan. 1, 2020 (%):",
+	                 sliderInput(inputId="ifr1.range",label="IFR range Feb. 1, 2020 (%):",
 	                             value=c(0.5,0.8),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr2.range",label="IFR range Apr. 1, 2020 (%):",
+	                 sliderInput(inputId="ifr2.range",label="IFR range May. 2, 2020 (%):",
 	                             value=c(0.4,0.7),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr3.range",label="IFR range Jul. 1, 2020 (%):",
+	                 sliderInput(inputId="ifr3.range",label="IFR range Aug. 2, 2020 (%):",
 	                             value=c(0.3,0.6),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr4.range",label="IFR range Oct. 1, 2020 (%):",
+	                 sliderInput(inputId="ifr4.range",label="IFR range Nov. 1, 2020 (%):",
 	                             value=c(0.25,0.55),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr5.range",label="IFR range Jan. 1, 2021 (%):",
+	                 sliderInput(inputId="ifr5.range",label="IFR range Jan. 31, 2021 (%):",
 	                             value=c(0.25,0.55),min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay.range",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
@@ -363,15 +351,15 @@ ui<-fluidPage(
 	                                       "Texas","Utah","Vermont","Virginia",
 	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
 	                             selected="Massachusetts"),
-	                 sliderInput(inputId="ifr1",label="IFR Jan. 1, 2020 (%):",value=0.65,
+	                 sliderInput(inputId="ifr1",label="IFR Feb. 1, 2020 (%):",value=0.65,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr2",label="IFR Apr. 1, 2020 (%):",value=0.55,
+	                 sliderInput(inputId="ifr2",label="IFR May. 2, 2020 (%):",value=0.55,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr3",label="IFR Jul. 1, 2020 (%):",value=0.45,
+	                 sliderInput(inputId="ifr3",label="IFR Aug. 2, 2020 (%):",value=0.45,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr4",label="IFR Oct. 1, 2020 (%):",value=0.4,
+	                 sliderInput(inputId="ifr4",label="IFR Nov. 1, 2020 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
-	                 sliderInput(inputId="ifr5",label="IFR Jan. 1, 2021 (%):",value=0.4,
+	                 sliderInput(inputId="ifr5",label="IFR Jan. 31, 2021 (%):",value=0.4,
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
@@ -583,6 +571,19 @@ ui<-fluidPage(
 )
 
 server <- function(input, output, data=Data, session) {
+  makeIFR<-function(ifr,smooth=TRUE){
+    ifr<-c(ifr[1],ifr)
+    tt<-c(1,32,32+91,32+91+92,32+91+92+91,32+366)
+    tmp<-vector()    
+    for(i in 1:(length(ifr)-1)){
+        tmp<-c(tmp,seq(ifr[i],ifr[i+1],length.out=tt[i+1]-tt[i]))
+    }
+    if(smooth){
+      tt<-1:(max(tt)-min(tt))
+      tmp<-predict(loess(tmp~tt,span=0.3))
+    }
+    tmp
+  }
 	output$plot.state<-renderPlot({
 		options(scipen=10)
 		par(lend=1)
@@ -646,13 +647,14 @@ server <- function(input, output, data=Data, session) {
 	  }
 	)
 	output$plot.cases<-renderPlot({
-		options(scipen=10)
+	  options(scipen=10)
 		par(lend=1)
 		infection.estimator(state=input$state.cases,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			data=data,
 			cumulative=input$cumulative.cases,
-			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			ifr=makeIFR(c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			smooth=input$smooth),
 			delay=input$delay,window=input$window,
 			smooth=input$smooth,
 			percent=input$percent,
@@ -670,7 +672,8 @@ server <- function(input, output, data=Data, session) {
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			data=data,
 			cumulative=input$cumulative.cases,
-			ifr=c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			ifr=makeIFR(c(input$ifr1,input$ifr2,input$ifr3,input$ifr4,input$ifr5)/100,
+			smooth=input$smooth),
 			delay=input$delay,window=input$window,
 			smooth=input$smooth,
 			percent=input$percent,
@@ -685,7 +688,8 @@ server <- function(input, output, data=Data, session) {
 	  par(lend=1)
 	  infections.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
 	    data=data,
-	    ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	    ifr=makeIFR(c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	    smooth=TRUE),
 	    delay=input$delay.bs,window=input$window.bs,
 	    smooth=TRUE,show.ifr=input$show.ifr,
 	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
@@ -700,7 +704,8 @@ server <- function(input, output, data=Data, session) {
 	    par(lend=1)
 	    infections.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
 		    	data=data,
-	        ifr=c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	        ifr=makeIFR(c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
+	        smooth=TRUE),
 	        delay=input$delay.bs,window=input$window.bs,
 	        smooth=TRUE,show.ifr=input$show.ifr,
 	        cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
@@ -715,10 +720,10 @@ server <- function(input, output, data=Data, session) {
 	  infection.range.estimator(state=input$state.range,
 	    las=1,cex.axis=0.8,cex.lab=0.9,
 	    data=data,
-	    ifr.low=c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
-	    input$ifr4.range[1],input$ifr5.range[1])/100,
-	    ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
-	    input$ifr4.range[2],input$ifr5.range[2])/100,
+	    ifr.low=makeIFR(c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
+	    input$ifr4.range[1],input$ifr5.range[1])/100,smooth=TRUE),
+	    ifr.high=makeIFR(c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
+	    input$ifr4.range[2],input$ifr5.range[2])/100,smooth=TRUE),
 	    delay=input$delay.range,window=input$window.range,
 		cumulative=input$cumulative.range,percent=input$percent.range,
 	    span=input$span.range)
@@ -733,10 +738,10 @@ server <- function(input, output, data=Data, session) {
 	    infection.range.estimator(state=input$state.range,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			data=data,
-			ifr.low=c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
-			input$ifr4.range[1],input$ifr5.range[1])/100,
-			ifr.high=c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
-			input$ifr4.range[2],input$ifr5.range[2])/100,
+			ifr.low=makeIFR(c(input$ifr1.range[1],input$ifr2.range[1],input$ifr3.range[1],
+			input$ifr4.range[1],input$ifr5.range[1])/100,smooth=TRUE),
+			ifr.high=makeIFR(c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
+			input$ifr4.range[2],input$ifr5.range[2])/100,smooth=TRUE),
 			delay=input$delay.range,window=input$window.range,
 			cumulative=input$cumulative.range,percent=input$percent.range,
 			span=input$span.range,
@@ -748,8 +753,8 @@ server <- function(input, output, data=Data, session) {
 	  options(scipen=10)
 	  par(lend=1,lwd=2)
 	  compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
-	    data=data,ifr=c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
-	    input$ifr4.c,input$ifr5.c)/100,
+	    data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
+	    input$ifr4.c,input$ifr5.c)/100,smooth=TRUE),
 	    delay=input$delay.c,window=input$window.c,
 	    cumulative=input$cumulative.c,
 	    per.capita=input$per.capita,
@@ -763,8 +768,8 @@ server <- function(input, output, data=Data, session) {
 	    png(file,width=12,height=10,units="in",res=800) # open the png device
 	    par(lend=1)
 	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
-			  data=data,ifr=c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
-			  input$ifr4.c,input$ifr5.c)/100,
+			  data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
+			  input$ifr4.c,input$ifr5.c)/100,smooth+TRUE),
 			  delay=input$delay.c,window=input$window.c,
 			  cumulative=input$cumulative.c,
 			  per.capita=input$per.capita,
