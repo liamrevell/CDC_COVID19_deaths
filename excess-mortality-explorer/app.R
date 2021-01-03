@@ -781,7 +781,7 @@ server <- function(input, output, data=Data, session) {
 	    par(lend=1)
 	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
 			  data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
-			  input$ifr4.c,input$ifr5.c)/100,smooth+TRUE),
+			  input$ifr4.c,input$ifr5.c)/100,smooth=TRUE),
 			  delay=input$delay.c,window=input$window.c,
 			  cumulative=input$cumulative.c,
 			  per.capita=input$per.capita,
