@@ -132,7 +132,7 @@ ui<-fluidPage(
 					selectInput(inputId="show.cd",
 						label="Show plot of:",
 						choices=c("raw deaths","deaths / 1M population",
-						"as % of total"),
+						"as % of total","as % of COVID-19 deaths"),
 						selected="raw deaths",
 					),
 					selectInput(inputId="plot.cd",
@@ -778,7 +778,7 @@ server <- function(input, output, data=Data, session) {
 	  },
 	  content = function(file) {
 	    png(file,width=12,height=10,units="in",res=800) # open the png device
-	    par(lend=1)
+	    par(lend=1,lwd=2)
 	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
 			  data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
 			  input$ifr4.c,input$ifr5.c)/100,smooth=TRUE),
@@ -819,7 +819,8 @@ server <- function(input, output, data=Data, session) {
 	  options(scipen=10)
 	  show<-if(input$show.cd=="raw deaths") "raw" else 
 	    if(input$show.cd=="deaths / 1M population") "per.capita" else
-	    if(input$show.cd=="as % of total") "percent"
+	    if(input$show.cd=="as % of total") "percent" else
+	    if(input$show.cd=="as % of COVID-19 deaths") "percent.of.covid.deaths"
 	  plot<-if(input$plot.cd=="bar plot") "bar" else 
 	    if(input$plot.cd=="polygons") "standard" else
 	    if(input$plot.cd=="smoothed") "smooth"
@@ -840,10 +841,11 @@ server <- function(input, output, data=Data, session) {
 	    par(lend=1)
 	    show<-if(input$show.cd=="raw deaths") "raw" else 
 	      if(input$show.cd=="deaths / 1M population") "per.capita" else
-	        if(input$show.cd=="as % of total") "percent"
+	      if(input$show.cd=="as % of total") "percent" else
+	      if(input$show.cd=="as % of COVID-19 deaths") "percent.of.covid.deaths"
 	    plot<-if(input$plot.cd=="bar plot") "bar" else 
 	      if(input$plot.cd=="polygons") "standard" else
-	        if(input$plot.cd=="smoothed") "smooth"
+	      if(input$plot.cd=="smoothed") "smooth"
 	    covid.deaths(age.group=input$ages,
 			  sex=input$sex,
 			  las=1,cex.axis=0.8,cex.lab=0.9,
