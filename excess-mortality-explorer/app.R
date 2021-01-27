@@ -46,7 +46,7 @@ ui<-fluidPage(
 						sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
 							value=21,min=0,max=30,ticks=FALSE),
 						sliderInput(inputId="window.bs",label="Window for moving averages:",
-							value=7,min=1,max=21,ticks=FALSE),
+							value=3,min=1,max=21,ticks=FALSE),
 						sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
 							value=0.2,min=0.05,max=0.4,ticks=FALSE),
 						checkboxInput(inputId="cumulative.bs",
@@ -87,6 +87,80 @@ ui<-fluidPage(
 	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
+	                 "Complete code and more details of methodology are available here:",
+	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
+	                 ", "
+	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
+	                 ".",
+	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+	               width=12)
+	           )
+	  ),
+	  tabPanel("Iceberg plot", fluid = TRUE,
+	           verticalLayout(
+	             sidebarLayout(
+	               sidebarPanel(
+	                 selectInput(inputId="state.ib",label="State or jurisdiction",
+	                             choices=c("United States","Alabama","Alaska","Arizona",
+	                                       "Arkansas","California","Colorado","Connecticut",
+	                                       "Delaware","District of Columbia","Florida",
+	                                       "Georgia","Hawaii","Idaho","Illinois",
+	                                       "Indiana","Iowa","Kansas","Kentucky","Louisiana",
+	                                       "Maine","Maryland","Massachusetts","Michigan","Minnesota",
+	                                       "Mississippi","Missouri","Montana","Nebraska","Nevada",
+	                                       "New Hampshire","New Jersey","New Mexico","New York",
+	                                       "New York City","North Carolina","North Dakota",
+	                                       "Ohio","Oklahoma","Oregon","Pennsylvania","Puerto Rico",
+	                                       "Rhode Island","South Carolina","South Dakota","Tennessee",
+	                                       "Texas","Utah","Vermont","Virginia",
+	                                       "Washington","West Virginia","Wisconsin","Wyoming"),
+	                             selected="United States"),
+	                 sliderInput(inputId="ifr1.ib",label="IFR Feb. 1, 2020 (%):",value=0.65,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr2.ib",label="IFR May. 2, 2020 (%):",value=0.55,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr3.ib",label="IFR Aug. 2, 2020 (%):",value=0.45,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr4.ib",label="IFR Nov. 1, 2020 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="ifr5.ib",label="IFR Jan. 31, 2021 (%):",value=0.4,
+	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
+	                 sliderInput(inputId="delay.ib",label="Average lag-time from infection to death:",
+	                             value=21,min=0,max=30,ticks=FALSE),
+	                 sliderInput(inputId="window.ib",label="Window for moving averages:",
+	                             value=3,min=1,max=21,ticks=FALSE),
+	                 sliderInput(inputId="span.ib",label="Span (for LOESS smoothing):",
+	                             value=0.15,min=0.05,max=0.4,ticks=FALSE),
+	                 actionButton("twitter_share",
+	                              label = "",
+	                              icon = icon("twitter"),
+	                              onclick = sprintf("window.open('%s')", tweet_url)),
+	                 actionButton("facebook_share",
+	                              label = "",
+	                              icon = icon("facebook"),
+	                              onclick = sprintf("window.open('%s')", facebook_url)),
+					downloadButton(outputId="down.iceberg",label="Save Plot"),
+	                 width=3
+	               ),
+	               mainPanel(
+	                 plotOutput("plot.iceberg",width="auto",height="800px"),
+	                 width=9
+	               )
+	             ),
+	             sidebarPanel(
+	               p(strong("Details:"),
+	                 "This platform was developed using the ",
+	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
+	                 "web application framework in ",
+	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
+	                 ".",
+	                 "The data for these plots come from the U.S. CDC ",
+	                 a("COVID-19 Cases and Deaths by State over Time",
+	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
+	                 ".",
+	                 em("Estimated"),"cases are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
+	                 em("Observed"),"cases are the sum of confirmed and presumed cases according to CDC data.",
+	                 "Number of cases in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated cases through time.",
 	                 "Complete code and more details of methodology are available here:",
 	                 a("1",href="https://github.com/liamrevell/covid19.Explorer/",.noWS="after"),
 	                 ", "
@@ -658,6 +732,36 @@ server <- function(input, output, data=Data, session) {
 	    dev.off()
 	  }
 	)
+	output$plot.iceberg<-renderPlot({
+		options(scipen=10)
+		par(lend=1)
+		iceberg.plot(state=input$state.ib,
+			las=1,cex.axis=0.8,cex.lab=0.9,
+			data=data,
+			ifr=makeIFR(c(input$ifr1.ib,input$ifr2.ib,input$ifr3.ib,input$ifr4.ib,input$ifr5.ib)/100,
+				smooth=TRUE),
+			delay=input$delay.ib,window=input$window.ib,
+			span=input$span.ib)
+	})
+	output$down.iceberg<-downloadHandler(
+		filename = function() {
+			paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
+		},
+		content = function(file) {
+			png(file,width=12,height=10,units="in",res=800) # open the png device
+			options(scipen=10)
+			par(lend=1)
+			iceberg.plot(state=input$state.ib,
+				las=1,cex.axis=0.8,cex.lab=0.9,
+				data=data,
+				ifr=makeIFR(c(input$ifr1.ib,input$ifr2.ib,input$ifr3.ib,input$ifr4.ib,input$ifr5.ib)/100,
+					smooth=TRUE),
+				delay=input$delay.ib,window=input$window.ib,
+				span=input$span.ib,
+				bg="white")
+			dev.off()
+		}
+	)	
 	output$plot.cases<-renderPlot({
 	  options(scipen=10)
 		par(lend=1)
