@@ -2,20 +2,25 @@ library(shiny)
 library(shinyWidgets)
 library(covid19.Explorer)
 
-Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
-Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
-States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
-age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
+data(Data)
+
+# Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
+# Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
+# States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
+# age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
-Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
+# Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
 CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
-Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
+# Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
 
 dd<-as.Date(Cases$submission_date,format="%m/%d/%Y")
 Cases<-Cases[order(dd),]
 
-Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
-           CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
+#Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
+#           CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
+
+Data$Cases<-Cases
+Data$CovidDeaths<-CovidDeaths
 
 tweet_url<-"https://twitter.com/intent/tweet?text=Check%20out%20this%20cool%20COVID-19%20app:&url=http://covid19-explorer.org"
 facebook_url<-"https://www.facebook.com/sharer/sharer.php?u=http://covid19-explorer.org"
