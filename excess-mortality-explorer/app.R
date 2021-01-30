@@ -4,20 +4,25 @@ library(covid19.Explorer)
 
 data(Data)
 
-# Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
-# Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
-# States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
-# age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
+## Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
+## Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
+## Provis2020<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2020-2021.csv")
+## ii<-which(Provis$MMWR.Year==2020)
+## Provis<-Provis[-ii,]
+## ii<-which(Provis2020$MMWR.Year==2021)
+## Provis<-rbind(Provis,Provis2020[-ii,])
+## States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
+## age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
 Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
-# Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
+## Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
 CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
-# Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
+## Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
 
 dd<-as.Date(Cases$submission_date,format="%m/%d/%Y")
 Cases<-Cases[order(dd),]
 
-#Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
-#           CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
+## Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
+##            CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
 
 Data$Cases<-Cases
 Data$CovidDeaths<-CovidDeaths
@@ -663,8 +668,8 @@ ui<-fluidPage(
 
 server <- function(input, output, data=Data, session) {
   makeIFR<-function(ifr,smooth=TRUE){
-    ifr<-c(ifr[1],ifr)
-    tt<-c(1,32,32+91,32+91+92,32+91+92+91,32+366)
+    ifr<-c(ifr[1],ifr,ifr[length(ifr)])
+    tt<-c(1,32,32+91,32+91+92,32+91+92+91,366+32,366+32+28)
     tmp<-vector()    
     for(i in 1:(length(ifr)-1)){
         tmp<-c(tmp,seq(ifr[i],ifr[i+1],length.out=tt[i+1]-tt[i]))
