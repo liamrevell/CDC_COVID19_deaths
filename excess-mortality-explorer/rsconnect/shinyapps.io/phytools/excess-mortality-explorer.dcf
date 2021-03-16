@@ -5,9 +5,9 @@ account: phytools
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2987282
-bundleId: 4263838
+bundleId: 4353106
 url: https://phytools.shinyapps.io/excess-mortality-explorer/
-when: 1614121987.76519
+when: 1615903450.20329
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: age.deaths.R|case.estimator.R|case.range.estimator.R|Centers.csv|Excess-deaths-partisanship.png|mask.analysis.R|masks.csv|partisanship.csv|state.deaths.R|STATE_GRAPHS.R|Total-excess-deaths-partisanship.png|United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv|united_states_covid19_cases_and_deaths_by_state.csv|Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv|Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv|gif/Excess-Weekly-anim.gif|gif/GIF_MAKER.R
