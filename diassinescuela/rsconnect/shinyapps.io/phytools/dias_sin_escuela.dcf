@@ -1,0 +1,13 @@
+name: dias_sin_escuela
+title: dias_sin_escuela
+username:
+account: phytools
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4091948
+bundleId: 4567840
+url: https://phytools.shinyapps.io/dias_sin_escuela/
+when: 1620346873.3221
+lastSyncTime: 1620346873.3221
+asMultiple: FALSE
+asStatic: FALSE

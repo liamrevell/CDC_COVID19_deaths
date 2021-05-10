@@ -39,10 +39,18 @@ ui<-fluidPage(
 	tabsetPanel(
 		type="pills",
 		selected="U.S. COVID-19 infections",
+		tabPanel("Methodology", fluid = TRUE,
+		  mainPanel(
+		    includeHTML("https://liamrevell.github.io/methodology/index.html")
+		  )
+	  ),
 		tabPanel("U.S. COVID-19 infections", fluid = TRUE,
 			verticalLayout(
 				sidebarLayout(
 					sidebarPanel(
+						p(strong("Estimated SARS-CoV-2 infections by U.S. state."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
 						sliderInput(inputId="ifr1.bs",label="IFR Feb. 1, 2020 (%):",value=0.85,
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 						sliderInput(inputId="ifr2.bs",label="IFR May. 2, 2020 (%):",value=0.65,
@@ -107,10 +115,13 @@ ui<-fluidPage(
 	           )
 	  ),
 	  tabPanel("Iceberg plot", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
-	                 selectInput(inputId="state.ib",label="State or jurisdiction",
+	  	verticalLayout(
+	    	sidebarLayout(
+	      	sidebarPanel(
+	        	p(strong("Estimated observed/unobserved infections."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
+	          selectInput(inputId="state.ib",label="State or jurisdiction",
 	                             choices=c("United States","Alabama","Alaska","Arizona",
 	                                       "Arkansas","California","Colorado","Connecticut",
 	                                       "Delaware","District of Columbia","Florida",
@@ -181,10 +192,13 @@ ui<-fluidPage(
 	           )
 	  ),
 	  tabPanel("Deaths by age", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
-	                 selectInput(inputId="ages",
+	  	verticalLayout(
+	    	sidebarLayout(
+	      	sidebarPanel(
+	        	p(strong("COVID-19 deaths by age."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
+	        	selectInput(inputId="ages",
 	                                    label="Select age group(s):",
 	                                    choices=c("Under 1 year",
 	                                              "1-4 years",
@@ -270,11 +284,14 @@ ui<-fluidPage(
 	           )
 	  ),
 	  tabPanel("State comparison", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
-	                 selectInput(inputId="states",label="State or jurisdiction to compare",
-	                             choices=c("United States","Alabama","Alaska","Arizona",
+	  	verticalLayout(
+	    	sidebarLayout(
+	      	sidebarPanel(
+	        	p(strong("Estimated infections & COVID-19 deaths by U.S. state."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
+	        	selectInput(inputId="states",label="State or jurisdiction to compare",
+	          	choices=c("United States","Alabama","Alaska","Arizona",
 	                                       "Arkansas","California","Colorado","Connecticut",
 	                                       "Delaware","District of Columbia","Florida",
 	                                       "Georgia","Hawaii","Idaho","Illinois",
@@ -350,10 +367,13 @@ ui<-fluidPage(
 	           )
 	  ),	  
 	  tabPanel("Plausible range", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
-	                 selectInput(inputId="state.range",label="State or jurisdiction",
+	  	verticalLayout(
+	    	sidebarLayout(
+	      	sidebarPanel(
+	        	p(strong("Estimated SARS-CoV-2 daily or cumulative infections."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
+	        	selectInput(inputId="state.range",label="State or jurisdiction",
 	                             choices=c("United States","Alabama","Alaska","Arizona",
 	                                       "Arkansas","California","Colorado","Connecticut",
 	                                       "Delaware","District of Columbia","Florida",
@@ -429,9 +449,12 @@ ui<-fluidPage(
 	           )
 	  ),
 	  tabPanel("Infection estimator", fluid = TRUE,
-	           verticalLayout(
-	             sidebarLayout(
-	               sidebarPanel(
+	  	verticalLayout(
+	    	sidebarLayout(
+	      	sidebarPanel(
+	        	p(strong("Estimated SARS-CoV-2 daily or cumulative infections."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
 	                 selectInput(inputId="state.cases",label="State or jurisdiction",
 	                             choices=c("United States","Alabama","Alaska","Arizona",
 	                                       "Arkansas","California","Colorado","Connecticut",
@@ -517,6 +540,9 @@ ui<-fluidPage(
 		  verticalLayout(
 			sidebarLayout(
 				sidebarPanel(
+					p(strong("Weekly excess mortality by age & jurisdiction."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
 					selectInput(inputId="state.age",label="State or jurisdiction",
 						choices=c("United States","Alabama","Alaska","Arizona",
 							"Arkansas","California","Colorado","Connecticut",
@@ -588,9 +614,12 @@ ui<-fluidPage(
 		  )
 		),
 		tabPanel("By state", fluid = TRUE,
-		         verticalLayout(
-		         sidebarLayout(
-		           sidebarPanel(
+			verticalLayout(
+		  	sidebarLayout(
+		    	sidebarPanel(
+		      	p(strong("Weekly excess mortality by U.S. state or jurisdiction."),br(),"See",
+							a("Methodology",href="https://covid19-explorer.org/methodology/",.noWS="after"),
+							" for more details.",style="text-align:center;"),
 		             selectInput(inputId="state",label="State or jurisdiction",
 		                         choices=c("United States","Alabama","Alaska","Arizona",
 		                                   "Arkansas","California","Colorado","Connecticut",
@@ -657,12 +686,7 @@ ui<-fluidPage(
 		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 		           width=12)
 		         )
-		),
-		tabPanel("Methodology", fluid = TRUE,
-		  mainPanel(
-		    includeHTML("https://liamrevell.github.io/methodology/index.html")
-		  )
-	  )
+		)
 	)
 )
 
