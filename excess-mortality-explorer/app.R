@@ -2,30 +2,11 @@ library(shiny)
 library(shinyWidgets)
 library(covid19.Explorer)
 
-data(Data)
-
-## Counts<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2014-2018.csv")
-## Provis<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2019-2020.csv")
-## Provis2020<-read.csv("https://liamrevell.github.io/data/Weekly_Counts_of_Deaths_by_State_and_Select_Causes__2020-2021.csv")
-## ii<-which(Provis$MMWR.Year==2020)
-## Provis<-Provis[-ii,]
-## ii<-which(Provis2020$MMWR.Year==2021)
-## Provis<-rbind(Provis,Provis2020[-ii,])
-## States<-read.csv("https://liamrevell.github.io/data/nst-est2019-01.csv",row.names=1)
-## age.Counts<-read.csv("https://liamrevell.github.io/data/Weekly_counts_of_deaths_by_jurisdiction_and_age_group.csv")
-Cases<-read.csv("https://liamrevell.github.io/data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
-## Centers<-read.csv("https://liamrevell.github.io/data/Centers.csv")
-CovidDeaths<-read.csv("https://liamrevell.github.io/data/Provisional_COVID-19_Death_Counts_by_Sex__Age__and_Week.csv")
-## Age.Pop<-read.csv("https://liamrevell.github.io/data/US_Population_by_Age.csv")
-
-dd<-as.Date(Cases$submission_date,format="%m/%d/%Y")
-Cases<-Cases[order(dd),]
-
-## Data<-list(Counts=Counts,Provis=Provis,States=States,age.Counts=age.Counts,Cases=Cases,Centers=Centers,
-##            CovidDeaths=CovidDeaths,Age.Pop=Age.Pop)
-
-Data$Cases<-Cases
-Data$CovidDeaths<-CovidDeaths
+load("Data.rda")
+if(Data$date<(Sys.Date()-2)){
+		Data<-updateData(Data)
+		save(Data,file="Data.rda")
+}
 
 tweet_url<-"https://twitter.com/intent/tweet?text=Check%20out%20this%20cool%20COVID-19%20app:&url=http://covid19-explorer.org"
 facebook_url<-"https://www.facebook.com/sharer/sharer.php?u=http://covid19-explorer.org"
@@ -63,8 +44,6 @@ ui<-fluidPage(
 							min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 						sliderInput(inputId="delay.bs",label="Average lag-time from infection to death:",
 							value=21,min=0,max=30,ticks=FALSE),
-						sliderInput(inputId="window.bs",label="Window for moving averages:",
-							value=1,min=1,max=21,ticks=FALSE),
 						sliderInput(inputId="span.bs",label="Span (for LOESS smoothing):",
 							value=0.12,min=0.05,max=0.4,ticks=FALSE),
 						checkboxInput(inputId="cumulative.bs",
@@ -148,8 +127,6 @@ ui<-fluidPage(
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay.ib",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
-	                 sliderInput(inputId="window.ib",label="Window for moving averages:",
-	                             value=1,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span.ib",label="Span (for LOESS smoothing):",
 	                             value=0.12,min=0.05,max=0.4,ticks=FALSE),
 	                 actionButton("twitter_share",
@@ -318,8 +295,6 @@ ui<-fluidPage(
 	                             min=0.05,max=1.5,step=0.05,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay.c",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
-	                 sliderInput(inputId="window.c",label="Window for moving averages:",
-	                             value=1,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span.c",label="Span (for LOESS smoothing):",
 	                             value=0.12,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="per.capita",
@@ -400,8 +375,6 @@ ui<-fluidPage(
 	                             value=c(0.35,0.65),min=0.05,max=1.5,step=0.025,round=2,ticks=FALSE),
 	                 sliderInput(inputId="delay.range",label="Average lag-time from infection to death:",
 	                             value=21,min=0,max=30,ticks=FALSE),
-	                 sliderInput(inputId="window.range",label="Window for moving averages:",
-	                             value=1,min=1,max=21,ticks=FALSE),
 	                 sliderInput(inputId="span.range",label="Span (for LOESS smoothing):",
 	                             value=0.12,min=0.05,max=0.4,ticks=FALSE),
 	                 checkboxInput(inputId="percent.range",
@@ -687,7 +660,7 @@ ui<-fluidPage(
 		           width=12)
 		         )
 		)
-	)
+	),
 )
 
 server <- function(input, output, data=Data, session) {
@@ -774,7 +747,7 @@ server <- function(input, output, data=Data, session) {
 			data=data,
 			ifr=makeIFR(c(input$ifr1.ib,input$ifr2.ib,input$ifr3.ib,input$ifr4.ib,input$ifr5.ib)/100,
 				smooth=TRUE),
-			delay=input$delay.ib,window=input$window.ib,
+			delay=input$delay.ib,window=1,
 			span=input$span.ib)
 	})
 	output$down.iceberg<-downloadHandler(
@@ -790,7 +763,7 @@ server <- function(input, output, data=Data, session) {
 				data=data,
 				ifr=makeIFR(c(input$ifr1.ib,input$ifr2.ib,input$ifr3.ib,input$ifr4.ib,input$ifr5.ib)/100,
 					smooth=TRUE),
-				delay=input$delay.ib,window=input$window.ib,
+				delay=input$delay.ib,window=1,
 				span=input$span.ib,
 				bg="white")
 			dev.off()
@@ -840,7 +813,7 @@ server <- function(input, output, data=Data, session) {
 	    data=data,
 	    ifr=makeIFR(c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	    smooth=TRUE),
-	    delay=input$delay.bs,window=input$window.bs,
+	    delay=input$delay.bs,window=1,
 	    smooth=TRUE,show.ifr=input$show.ifr,
 	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
 	    span=input$span.bs)
@@ -856,7 +829,7 @@ server <- function(input, output, data=Data, session) {
 		    	data=data,
 	        ifr=makeIFR(c(input$ifr1.bs,input$ifr2.bs,input$ifr3.bs,input$ifr4.bs,input$ifr5.bs)/100,
 	        smooth=TRUE),
-	        delay=input$delay.bs,window=input$window.bs,
+	        delay=input$delay.bs,window=1,
 	        smooth=TRUE,show.ifr=input$show.ifr,
 	        cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
 	        span=input$span.bs,
@@ -874,7 +847,7 @@ server <- function(input, output, data=Data, session) {
 	    input$ifr4.range[1],input$ifr5.range[1])/100,smooth=TRUE),
 	    ifr.high=makeIFR(c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
 	    input$ifr4.range[2],input$ifr5.range[2])/100,smooth=TRUE),
-	    delay=input$delay.range,window=input$window.range,
+	    delay=input$delay.range,window=1,
 		cumulative=input$cumulative.range,percent=input$percent.range,
 	    span=input$span.range)
 	})
@@ -892,7 +865,7 @@ server <- function(input, output, data=Data, session) {
 			input$ifr4.range[1],input$ifr5.range[1])/100,smooth=TRUE),
 			ifr.high=makeIFR(c(input$ifr1.range[2],input$ifr2.range[2],input$ifr3.range[2],
 			input$ifr4.range[2],input$ifr5.range[2])/100,smooth=TRUE),
-			delay=input$delay.range,window=input$window.range,
+			delay=input$delay.range,window=1,
 			cumulative=input$cumulative.range,percent=input$percent.range,
 			span=input$span.range,
 			bg="white")
@@ -905,7 +878,7 @@ server <- function(input, output, data=Data, session) {
 	  compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
 	    data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
 	    input$ifr4.c,input$ifr5.c)/100,smooth=TRUE),
-	    delay=input$delay.c,window=input$window.c,
+	    delay=input$delay.c,window=1,
 	    cumulative=input$cumulative.c,
 	    per.capita=input$per.capita,
 	    span=input$span.c)
@@ -920,7 +893,7 @@ server <- function(input, output, data=Data, session) {
 	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
 			  data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
 			  input$ifr4.c,input$ifr5.c)/100,smooth=TRUE),
-			  delay=input$delay.c,window=input$window.c,
+			  delay=input$delay.c,window=1,
 			  cumulative=input$cumulative.c,
 			  per.capita=input$per.capita,
 			  span=input$span.c,
