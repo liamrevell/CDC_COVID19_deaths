@@ -4,8 +4,8 @@ library(covid19.Explorer)
 
 load("Data.rda")
 if(Data$date<(Sys.Date()-2)){
-		Data<-updateData(Data)
-		save(Data,file="Data.rda")
+	Data<-updateData(Data,what=c("Cases","CovidDeaths"))
+	save(Data,file="Data.rda")
 }
 
 tweet_url<-"https://twitter.com/intent/tweet?text=Check%20out%20this%20cool%20COVID-19%20app:&url=http://covid19-explorer.org"
