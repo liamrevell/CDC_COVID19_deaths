@@ -4,7 +4,7 @@ library(covid19.Explorer)
 
 load("Data.rda")
 if(Data$date<(Sys.Date()-2)){
-	Data<-updateData(Data,what=c("Cases","CovidDeaths"))
+	Data<-updateData(Data)
 	save(Data,file="Data.rda")
 }
 
@@ -73,15 +73,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
-	                 "The data for these plots come from the U.S. CDC ",
-	                 a("COVID-19 Cases and Deaths by State over Time",
-	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
-	                 ".",
 	                 em("Estimated"),"infections are based on moving average or LOESS smoothed CDC mortality data and an infection fatality ratio (IFR) specified by the user.",
 	                 "Number of infections in the last period of the data (during the lag-time to death) are based on observed cases and a fitted model for the relationship between observed and estimated infections through time.",
 	                 "Complete code and more details of methodology are available here:",
@@ -89,6 +80,7 @@ ui<-fluidPage(
 	                 ", "
 	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 	                 ".",
+	                 "Horizontal axis no longer being extended in this application tab.",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -147,11 +139,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
 	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
@@ -164,6 +151,7 @@ ui<-fluidPage(
 	                 ", "
 	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 	                 ".",
+	                 "Horizontal axis no longer being extended in this application tab.",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -202,8 +190,8 @@ ui<-fluidPage(
 	                             multiple=TRUE),
 	                 selectInput(inputId="sex",
 	                                    label="Select sex(es):",
-	                                    choices=c("Female","Male"),
-	                                    selected=c("Female","Male"),multiple=TRUE),
+	                                    choices=c("Male","Female"),
+	                                    selected=c("Male","Female"),multiple=TRUE),
 					selectInput(inputId="show.cd",
 						label="Show plot of:",
 						choices=c("raw deaths","deaths / 1M population",
@@ -239,11 +227,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
 	                 "Mortality data are from the ",
 	                 a("CDC",href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Death-Counts-by-Sex-Age-and-W/vsak-wrfu",
 	                 target="_blank",.noWS="outside"),
@@ -321,11 +304,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
 	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
@@ -337,6 +315,7 @@ ui<-fluidPage(
 	                 ", "
 	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 	                 ".",
+	                 "Horizontal axis no longer being extended in this application tab.",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -401,11 +380,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
 	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                   href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
@@ -417,6 +391,7 @@ ui<-fluidPage(
 	                 ", "
 	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 	                 ".",
+	                 "Horizontal axis no longer being extended in this application tab.",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -488,11 +463,6 @@ ui<-fluidPage(
 	             ),
 	             sidebarPanel(
 	               p(strong("Details:"),
-	                 "This platform was developed using the ",
-	                 a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-	                 "web application framework in ",
-	                 a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-	                 ".",
 	                 "The data for these plots come from the U.S. CDC ",
 	                 a("COVID-19 Cases and Deaths by State over Time",
 	                 href="https://data.cdc.gov/Case-Surveillance/United-States-COVID-19-Cases-and-Deaths-by-State-o/9mfq-cb36",.noWS="outside"),
@@ -505,6 +475,7 @@ ui<-fluidPage(
 	                 ", "
 	                 ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 	                 ".",
+	                 "Horizontal axis no longer being extended in this application tab.",
 	                 "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 	               width=12)
 	           )
@@ -531,6 +502,8 @@ ui<-fluidPage(
 							"Texas","Utah","Vermont","Virginia",
 							"Washington","West Virginia","Wisconsin","Wyoming"),
 							selected="Massachusetts"),
+					selectInput(inputId="year",label="Year",choices=c("2020","2021"),
+							selected="2020"),
 					checkboxGroupInput(inputId="age.group",label="Select age group(s):",
 						choices=c("Under 25 years","25-44 years","45-64 years",
 						"65-74 years","75-84 years","85 years and older"),
@@ -544,11 +517,6 @@ ui<-fluidPage(
 					checkboxInput(inputId="cumulative",
 						label="show cumulative excess mortality",
 						value=TRUE),
-					dateRangeInput(inputId="start.end.age",label="Starting & ending dates:",
-						start=as.Date("01/01/2020",format="%m/%d/%Y"),
-						end=as.Date("12/31/2020",format="%m/%d/%Y"),
-						min=as.Date("01/01/2020",format="%m/%d/%Y"),
-						max=as.Date("12/31/2020",format="%m/%d/%Y"),startview="month"),
 					actionButton("twitter_share",
 					             label = "",
 					             icon = icon("twitter"),
@@ -567,11 +535,6 @@ ui<-fluidPage(
 			),
 			sidebarPanel(
 		  	p(strong("Details:"),
-		  	  "This platform was developed using the ",
-		  	  a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-		  	  "web application framework in ",
-		  	  a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-		  	  ".",
 		  	  "The data for these plots come from the U.S. CDC provisional death counts.", 
 			    "Data for recent weeks are estimated based on reporting in past years.",
 			    "Mortality data are from the ",a("CDC",href="https://data.cdc.gov/NCHS/Weekly-counts-of-deaths-by-jurisdiction-and-age-gr/y5bj-9g5w",
@@ -638,11 +601,6 @@ ui<-fluidPage(
 		         ),
 		         sidebarPanel(
 		           p(strong("Details:"),
-		              "This platform was developed using the ",
-		              a("shiny",href="https://shiny.rstudio.com/",target="_blank"),
-		              "web application framework in ",
-		              a("R",href="https://www.r-project.org/",target="_blank",.noWS="after"),
-		             ".",
 		              "The data for these plots come from the U.S. CDC provisional death counts.",
 		              "Data for recent weeks are incomplete. For more information please refer to the",
 		              a("CDC technical notes",href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/tech_notes.htm",target="_blank",.noWS="after"),".",
@@ -656,7 +614,9 @@ ui<-fluidPage(
 		             ", "
 		             ,a("2",href="http://covid19-explorer.org/methodology/",.noWS="after"),
 		             ".",
-		              "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
+		             "This application tab has not been updated with 2021 data. See",
+		             em("Excess mortality by age"),"tab for 2021 estimated mortality displacement.",
+		             "Please",a("contact me",href="mailto:liamrevell@umb.edu")," with any questions."),
 		           width=12)
 		         )
 		)
@@ -692,14 +652,12 @@ server <- function(input, output, data=Data, session) {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1)
 	    state.deaths(state=input$state,plot=input$plot,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			type=if(input$type=="step") "s" else "l",
 			data=data,corrected=input$corrected,
-			date.range=list(start.date=input$start.end[1],
-			end.date=input$start.end[2]),
 			bg="white")
 	    dev.off()
 	  }
@@ -708,24 +666,23 @@ server <- function(input, output, data=Data, session) {
 		options(scipen=10)
 		par(lend=1)
 		age.deaths(state=input$state.age,
+			year=as.numeric(input$year),
 			plot=input$plot.age,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			age.group=input$age.group,
 			data=data,
 			corrected=input$corrected.age,
-			cumulative=input$cumulative,
-			date.range=list(
-			start.date=input$start.end.age[1],
-			end.date=input$start.end.age[2]))
+			cumulative=input$cumulative)
 	})
 	output$down.age<-downloadHandler(
 	  filename =  function() {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1)
 	    age.deaths(state=input$state.age,
+	    year=as.numeric(input$year),
 			plot=input$plot.age,
 			las=1,cex.axis=0.8,cex.lab=0.9,
 			age.group=input$age.group,
@@ -755,7 +712,7 @@ server <- function(input, output, data=Data, session) {
 			paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 		},
 		content = function(file) {
-			png(file,width=12,height=10,units="in",res=800) # open the png device
+			png(file,width=12,height=10,units="in",res=300) # open the png device
 			options(scipen=10)
 			par(lend=1)
 			iceberg.plot(state=input$state.ib,
@@ -789,7 +746,7 @@ server <- function(input, output, data=Data, session) {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1)
 	    infection.estimator(state=input$state.cases,
 			las=1,cex.axis=0.8,cex.lab=0.9,
@@ -816,14 +773,15 @@ server <- function(input, output, data=Data, session) {
 	    delay=input$delay.bs,window=1,
 	    smooth=TRUE,show.ifr=input$show.ifr,
 	    cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
-	    span=input$span.bs)
+	    span=input$span.bs,
+	    cdr="average")
 	})
 	output$down.allstates<-downloadHandler(
 	  filename =  function() {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=8,units="in",res=800) # open the png device
+	    png(file,width=12,height=8,units="in",res=300) # open the png device
 	    par(lend=1)
 	    infections.by.state(las=1,cex.axis=0.8,cex.lab=0.9,
 		    	data=data,
@@ -833,7 +791,8 @@ server <- function(input, output, data=Data, session) {
 	        smooth=TRUE,show.ifr=input$show.ifr,
 	        cumulative=input$cumulative.bs,show.as.percent=input$show.as.percent,
 	        span=input$span.bs,
-		    	bg="white")
+		    	bg="white",
+		    	cdr="average")
 	    dev.off()
 	  }
 	)
@@ -856,7 +815,7 @@ server <- function(input, output, data=Data, session) {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1)
 	    infection.range.estimator(state=input$state.range,
 			las=1,cex.axis=0.8,cex.lab=0.9,
@@ -888,7 +847,7 @@ server <- function(input, output, data=Data, session) {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1,lwd=2)
 	    compare.infections(state=input$states,las=1,cex.axis=0.8,cex.lab=0.9,
 			  data=data,ifr=makeIFR(c(input$ifr1.c,input$ifr2.c,input$ifr3.c,
@@ -948,7 +907,7 @@ server <- function(input, output, data=Data, session) {
 	    paste("covid19.Explorer.plot-", Sys.Date(), ".png", sep="")
 	  },
 	  content = function(file) {
-	    png(file,width=12,height=10,units="in",res=800) # open the png device
+	    png(file,width=12,height=10,units="in",res=300) # open the png device
 	    par(lend=1)
 	    show<-if(input$show.cd=="raw deaths") "raw" else 
 	      if(input$show.cd=="deaths / 1M population") "per.capita" else
